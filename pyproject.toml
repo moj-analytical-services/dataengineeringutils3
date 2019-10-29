@@ -3,6 +3,7 @@ name = "dataengineeringutils3"
 version = "0.1.0"
 description = "Data engineering utils python 3 version"
 authors = ["Josh Rowe <josh.rowe@digital.justice.gov.uk>"]
+license = "MIT"
 exclude = ["tests*"]
 readme = "README.rst"
 homepage = "https://github.com/moj-analytical-services/dataengineeringutils3"
