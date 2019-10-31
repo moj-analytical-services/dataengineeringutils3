@@ -4,6 +4,10 @@ import boto3
 from moto import mock_s3, mock_sts
 import pytest
 
+from dataengineeringutils3.db import SelectQuerySet
+from tests.helpers import mock_object
+from tests.mocks import MockCursor
+
 
 @pytest.fixture(scope="function")
 def aws_credentials():
@@ -24,3 +28,12 @@ def s3(aws_credentials):
 def sts(aws_credentials):
     with mock_sts():
         yield boto3.resource("sts", region_name="eu-west-1")
+
+
+@pytest.fixture
+def select_queryset():
+    return SelectQuerySet(
+        mock_object(MockCursor, 15),
+        2,
+        "query"
+    )
