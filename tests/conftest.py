@@ -33,7 +33,7 @@ def sts(aws_credentials):
 @pytest.fixture
 def select_queryset():
     return SelectQuerySet(
-        mock_object(MockCursor, 15),
+        mock_object(MockCursor, range(15), [("Head 1", )]),
         2,
         "query"
     )

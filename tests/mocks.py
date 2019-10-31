@@ -1,8 +1,8 @@
 class MockCursor:
-    def __init__(self, total_rows, *args, **kwargs):
+    def __init__(self, results, description=[]):
         self.n = 0
-        self.results = range(total_rows)
-        super().__init__(*args, **kwargs)
+        self.results = results
+        self.description = description
 
     def execute(self, *args, **kwargs):
         pass
