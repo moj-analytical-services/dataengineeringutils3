@@ -1,4 +1,5 @@
 class MockCursor:
+    """Mocks cursor object for testing fetchmany db results"""
     def __init__(self, results, description=[]):
         self.n = 0
         self.results = results

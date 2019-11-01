@@ -19,6 +19,11 @@ def test_s3_path_to_bucket_key(s3_path, exp_bucket, exp_key):
 
 
 def test_gzip_string_write_to_s3(s3):
+    """
+    Test that file is gziped correctly and sent to s3
+    :param s3: mocked s3 resource
+    :return:
+    """
     file_text = "test-text"
     file_key = "test-key.txt.gz"
     bucket_name = "test"

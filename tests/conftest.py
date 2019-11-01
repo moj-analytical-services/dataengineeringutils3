@@ -34,6 +34,6 @@ def sts(aws_credentials):
 def select_queryset():
     return SelectQuerySet(
         mock_object(MockCursor, range(15), [("Head 1", )]),
+        "query",
         2,
-        "query"
     )

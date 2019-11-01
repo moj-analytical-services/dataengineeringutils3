@@ -4,10 +4,30 @@ from dataengineeringutils3.s3 import gzip_string_write_to_s3
 
 
 class SplitFileWriter:
+    """
+    Base class for splitting large datasets in to chunks and writing to s3
+
+    The extension and the _write methods are defined in classes which extend this class
+
+    lines = [
+        '{"key": "value"}'
+    ]
+    writer = JsonNlSplitFileWriter("s3://test/test-file.josnl.gz")
+    for line in lines:
+        writer.write_line(line)
+    writer.close()
+    """
     extension = ""
 
-    def __init__(self, outfile_path, max_bytes, chunk_size):
-        self.outfile_path = outfile_path
+    def __init__(self, outfile_path, max_bytes=800000000, chunk_size=1000):
+        """
+        Set the outfile path and specify the chunk byte size and line number chunk size
+
+        :param outfile_path: string: s3://test/test-file.jsonl.gz
+        :param max_bytes: int: Bytes to chunk file to: 800000000
+        :param chunk_size: int: number of rows  check file size for chunking: 1000
+        """
+        self.outfile_path = outfile_path.replace(self.extension, "")
         self.max_bytes = max_bytes
         self.chunk_size = chunk_size
         self.string = ""
@@ -15,6 +35,7 @@ class SplitFileWriter:
         self.files = 0
 
     def write_line(self, line):
+        """Writes line as string"""
         self.string += "%s\n" % line
         self.lines += 1
         if not self.lines % self.chunk_size \
@@ -22,15 +43,18 @@ class SplitFileWriter:
             self.write_file()
 
     def _write(self, file_path):
+        """Writes file part to storage or to s3"""
         raise NotImplementedError()
 
     def write_file(self):
+        """Writes and updates number of files and sets lines to 0"""
         self._write(f"{self.outfile_path}_{self.files}{self.extension}")
         self.files += 1
         self.string = ""
         self.lines = 0
 
     def close(self):
+        """Write all remaining lines to a final file"""
         if self.lines:
             self.write_file()
 
