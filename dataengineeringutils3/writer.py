@@ -51,8 +51,9 @@ class SplitFileWriter:
             self.write_file()
 
     def _write(self, file_path):
-        """Writes file part to storage or to s3"""
-        raise NotImplementedError()
+        """Writes file part to local storage"""
+        with open(file_path, "rb") as f:
+            f.write(bytes(self.string, 'utf-8'))
 
     def write_file(self):
         """Writes and updates number of files and sets lines to 0"""
