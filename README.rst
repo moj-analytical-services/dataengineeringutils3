@@ -17,4 +17,4 @@ Testing
 
 ..  code:: bash
 
-    pytest --cov=dataengineeringutils3
+    pytest --cov-report term-missing --cov=dataengineeringutils3 tests/
