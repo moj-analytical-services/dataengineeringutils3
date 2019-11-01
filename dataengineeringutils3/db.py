@@ -17,12 +17,10 @@ class SelectQuerySet:
         1000,
     )
 
-    writer = JsonNlSplitFileWriter("s3://test/test-file.josnl.gz")
-
-    column_names = select_queryset
-    for row in select_queryset:
-        writer.write_line(json.dumps(zip(column_names, row), cls=DateTimeEncoder))
-    writer.close()
+    with JsonNlSplitFileWriter("s3://test/test-file.josnl.gz") as writer:
+        column_names = select_queryset
+        for row in select_queryset:
+            writer.write_line(json.dumps(zip(column_names, row), cls=DateTimeEncoder))
     """
     def __init__(self, cursor, select_query, fetch_size=1000, **query_kwargs):
         """

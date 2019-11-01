@@ -1,21 +1,3 @@
-Skip to content
-Search or jump to…
-
-Pull requests
-Issues
-Marketplace
-Explore
-
-@s-block
-2.9k
-91k46.2kgithub/gitignore
- Code Pull requests 119 Actions Projects 0 Security Insights
-gitignore/Python.gitignore
-@thedrow thedrow Ignore coverage annotations reports. (#3131)
-3b445eb on 20 Sep
-@arcresu@shiftkey@Lucretiel@Harrison-G@jwg4@GabrielC101@Metallicow@misaelnieto@pmsosa@svkampen@vltr@matheussl@hugovk@ghisvail@EvandroLG@DSIW@amigcamel@toanant@2Cubed@brettcannon@weinihou@Visgean@nvie@skuschel@sigo@sethmlarson
-126 lines (102 sloc)  1.68 KB
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

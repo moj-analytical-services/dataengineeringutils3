@@ -8,16 +8,11 @@ def test_json_split_file_writer(s3):
     s3_path = f"s3://{bucket_name}/{file_key}"
     s3.meta.client.create_bucket(Bucket=bucket_name)
     bucket = s3.Bucket(bucket_name)
-    writer = JsonNlSplitFileWriter(
-        s3_path,
-        1024,
-        2
-    )
-    for i in range(150):
-        writer.write_line(f"{i}. This test line number {i + 1}")
-    writer.close()
+    with JsonNlSplitFileWriter(s3_path, 1024, 2) as writer:
+        for i in range(150):
+            writer.write_line(f"{i}. This test line number {i + 1}")
     keys_in_bucket = [f"s3://{bucket_name}/{o.key}" for o in bucket.objects.all()]
-    files_in_bucket = sum(1 for _ in keys_in_bucket)
+    files_in_bucket = len(keys_in_bucket)
     assert files_in_bucket == 5
     assert keys_in_bucket == [
         f"{s3_path}_{i}.jsonl.gz" for i in range(files_in_bucket)
