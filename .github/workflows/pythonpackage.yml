@@ -30,7 +30,13 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
+      env:
+        COVERALLS_REPO_TOKEN: ${{ secrets.github_token }}
+        COVERALLS_SERVICE_NAME: github
+        GIT_COMMIT: ${{ github.sha }}
       run: |
-        pip install pytest pytest-cov poetry
+        pip install pytest pytest-cov poetry boto3 moto coveralls
         poetry install
         pytest --cov-report term-missing --cov=dataengineeringutils3 tests/
+        export GIT_BRANCH=$(echo "${{ github.ref }}" | sed "s/refs\/heads\///")
+        coveralls

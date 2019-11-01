@@ -72,4 +72,5 @@ class JsonNlSplitFileWriter(SplitFileWriter):
     extension = ".jsonl.gz"
 
     def _write(self, file_path):
+        """Gzip string to file path in s3"""
         gzip_string_write_to_s3(self.string, file_path)
