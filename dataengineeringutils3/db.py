@@ -25,7 +25,7 @@ class SelectQuerySet:
     def __init__(self, cursor, select_query, fetch_size=1000, **query_kwargs):
         """
         Sets the curser, query and executes
-        :param cursor: curser object: sucha s cx_Oracle.connect().cursor
+        :param cursor: curser object: such as cx_Oracle.connect().cursor
         :param select_query: string: "select * from table"
         :param fetch_size: int: 1000
         :param query_kwargs: kwargs: kwargs for query formatting
