@@ -43,7 +43,7 @@ class SelectQuerySet:
 
     def __next__(self):
         """
-        Get next row. If the _result_cach is at the end then fetch more. If there are
+        Get next row. If the _result_cache is at the end then fetch more. If there are
         no more results the StopIteration.
         """
         if self._result_cache is not None:
