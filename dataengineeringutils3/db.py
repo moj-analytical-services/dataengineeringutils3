@@ -53,15 +53,20 @@ class SelectQuerySet:
                 return val
             except StopIteration:
                 pass
-        results = self.cursor.fetchmany(self.fetch_size)
-        if len(results) == 0:
-            raise StopIteration()
-        self._result_cache = iter(results)
+        self._update_result_cache()
         val = next(self._result_cache)
         self.n += 1
         return val
 
+    def _update_result_cache(self):
+        results = self.cursor.fetchmany(self.fetch_size)
+        if len(results) == 0:
+            raise StopIteration()
+        self._result_cache = iter(results)
+
     @property
     def headers(self):
         """Return column names"""
+        if self._result_cache is None:
+            self._update_result_cache()
         return [c[0] for c in self.cursor.description]
