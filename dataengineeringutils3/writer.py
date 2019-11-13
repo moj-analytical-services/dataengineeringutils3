@@ -30,6 +30,7 @@ class SplitFileWriter:
         self.max_bytes = max_bytes
         self.chunk_size = chunk_size
         self.string = ""
+        self.total_lines = 0
         self.num_lines = 0
         self.num_files = 0
 
@@ -60,6 +61,7 @@ class SplitFileWriter:
         self._write(f"{self.outfile_path}_{self.num_files}{self.extension}")
         self.num_files += 1
         self.string = ""
+        self.total_lines += self.num_lines
         self.num_lines = 0
 
     def close(self):
