@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dataengineeringutils3"
-version = "0.1.0"
+version = "0.1.1"
 description = "Data engineering utils python 3 version"
 authors = ["Josh Rowe <josh.rowe@digital.justice.gov.uk>"]
 license = "MIT"
