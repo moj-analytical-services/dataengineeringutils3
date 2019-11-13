@@ -17,8 +17,8 @@ class SelectQuerySet:
         1000,
     )
 
-    with JsonNlSplitFileWriter("s3://test/test-file.josnl.gz") as writer:
-        column_names = select_queryset
+    with JsonNlSplitFileWriter("s3://test/test-file.jsonl.gz") as writer:
+        column_names = select_queryset.headers
         for row in select_queryset:
             writer.write_line(json.dumps(zip(column_names, row), cls=DateTimeEncoder))
     """
