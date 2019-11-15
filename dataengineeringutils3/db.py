@@ -20,7 +20,8 @@ class SelectQuerySet:
     with JsonNlSplitFileWriter("s3://test/test-file.jsonl.gz") as writer:
         column_names = select_queryset.headers
         for row in select_queryset:
-            writer.write_line(json.dumps(zip(column_names, row), cls=DateTimeEncoder))
+            json_line_str = json.dumps(dict(zip(column_names, row)), cls=DateTimeEncoder)
+            writer.write_line(json_line_str)
     """
     def __init__(self, cursor, select_query, fetch_size=1000, **query_kwargs):
         """
