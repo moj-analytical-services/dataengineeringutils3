@@ -37,3 +37,12 @@ def select_queryset():
         "query",
         2,
     )
+
+
+@pytest.fixture
+def large_select_queryset():
+    return SelectQuerySet(
+        mock_object(MockCursor, 100000, [("Head 1", )]),
+        "query",
+        10000,
+    )

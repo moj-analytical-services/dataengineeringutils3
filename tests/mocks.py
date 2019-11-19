@@ -12,7 +12,7 @@ class MockCursor:
         pass
 
     def fetchmany(self, fetch_size):
-        if self.n >= self.length:
+        if self.n > self.length:
             raise StopIteration()
         self.n += fetch_size
         if self.n > self.length:

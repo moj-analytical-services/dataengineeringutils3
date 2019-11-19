@@ -38,8 +38,8 @@ class SelectQuerySet:
         self.query = select_query
         self.cursor = cursor
         self.fetch_size = fetch_size
-        self._result_cache = None
         self.cursor.execute(select_query, **query_kwargs)
+        self._result_cache = iter(self.cursor.fetchmany(self.fetch_size))
 
     def __iter__(self):
         """Reset iterator and n to 0"""
