@@ -39,44 +39,24 @@ class SelectQuerySet:
         self.cursor = cursor
         self.fetch_size = fetch_size
         self.cursor.execute(select_query, **query_kwargs)
-        self._result_cache = iter(self.cursor.fetchmany(self.fetch_size))
+        self._result_cache = self.cursor.fetchmany(self.fetch_size)
 
     def __iter__(self):
         """Reset iterator and n to 0"""
-        self.n = 0
-        return self
+        while self._result_cache:
+            for r in self._result_cache:
+                yield r
 
-    def __next__(self):
-        """
-        Get next row. If the _result_cache is at the end then fetch more. If there are
-        no more results the StopIteration.
-        """
-        if self._result_cache is not None:
-            try:
-                val = next(self._result_cache)
-                self.n += 1
-                return val
-            except StopIteration:
-                pass
-        self._update_result_cache()
-        val = next(self._result_cache)
-        self.n += 1
-        return val
+            self._result_cache = self._fetch_many()
 
-    def _update_result_cache(self):
+    def _fetch_many(self):
         try:
-            results = self.cursor.fetchmany(self.fetch_size)
+            return self.cursor.fetchmany(self.fetch_size)
         except Exception as e:
             logger.warning(e)
-            raise StopIteration()
-
-        if len(results) == 0:
-            raise StopIteration()
-        self._result_cache = iter(results)
+            return None
 
     @property
     def headers(self):
         """Return column names"""
-        if self._result_cache is None:
-            self._update_result_cache()
         return [c[0] for c in self.cursor.description]

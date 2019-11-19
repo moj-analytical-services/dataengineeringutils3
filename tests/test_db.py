@@ -1,7 +1,8 @@
-import time
 from unittest.mock import call
 
 from dataengineeringutils3.db import SelectQuerySet
+from tests.helpers import time_func
+from tests.mocks import MockQs
 
 
 def test_select_queryset(select_queryset):
@@ -30,41 +31,19 @@ def test_select_queryset(select_queryset):
 def get_list():
     return [
         '{"uuid": "fkjherpiutrgponfevpoir3qjgp8prueqhf9pq34hf89hwfpu92q"}'
-    ] * 100000
-
-
-class MockQs:
-    def __init__(self, results):
-        self.results = results
-        self.returned = False
-
-    def execute(self, *args, **kwargs):
-        pass
-
-    def fetchmany(self, *args, **kwargs):
-        if not self.returned:
-            self.returned = True
-            return self.results
-        raise StopIteration()
+    ] * 10000000
 
 
 def loop_through_qs():
     select_queryset = SelectQuerySet(
         MockQs(get_list()),
         "",
-        100000,
+        10000,
     )
     results = []
     for l in select_queryset:
         results.append(l)
     return results
-
-
-def time_func(func, *args, **kwargs):
-    start = time.time()
-    func(*args, **kwargs)
-    end = time.time()
-    return end - start
 
 
 def loop_through_list():
@@ -75,8 +54,11 @@ def loop_through_list():
 
 
 def test_speed_of_iterator():
+    """
+    Test that generator is not much slower than a flat list
+    """
     qs_time = time_func(loop_through_qs)
 
     range_time = time_func(loop_through_list)
 
-    assert qs_time < range_time
+    assert qs_time * 0.5 < range_time
