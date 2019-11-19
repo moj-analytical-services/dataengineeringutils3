@@ -9,7 +9,9 @@ def test_select_queryset(select_queryset):
     results = []
     for res in select_queryset:
         results.append(res)
-    assert results == list(range(15))
+    assert results == [
+        '{"uuid": "fkjherpiutrgponfevpoir3qjgp8prueqhf9pq34hf89hwfpu92q"}'
+    ] * 15
     select_queryset.cursor.fetchmany.assert_has_calls([
         call(2),
         call(2),
