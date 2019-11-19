@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__file__)
+
+
 class SelectQuerySet:
     """
     Iterator for fetching select query results in chunks.
@@ -59,7 +64,12 @@ class SelectQuerySet:
         return val
 
     def _update_result_cache(self):
-        results = self.cursor.fetchmany(self.fetch_size)
+        try:
+            results = self.cursor.fetchmany(self.fetch_size)
+        except Exception as e:
+            logger.warning(e)
+            raise StopIteration()
+
         if len(results) == 0:
             raise StopIteration()
         self._result_cache = iter(results)
