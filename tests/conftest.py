@@ -46,3 +46,10 @@ def large_select_queryset():
         "query",
         10000,
     )
+
+
+@pytest.fixture
+def result_set():
+    return [
+        '{"uuid": "fkjherpiutrgponfevpoir3qjgp8prueqhf9pq34hf89hwfpu92q"}'
+    ] * 100000

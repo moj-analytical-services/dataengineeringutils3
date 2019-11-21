@@ -28,15 +28,9 @@ def test_select_queryset(select_queryset):
     ])
 
 
-def get_list():
-    return [
-        '{"uuid": "fkjherpiutrgponfevpoir3qjgp8prueqhf9pq34hf89hwfpu92q"}'
-    ] * 1000000
-
-
-def loop_through_qs():
+def loop_through_qs(result_set):
     select_queryset = SelectQuerySet(
-        MockQs(get_list()),
+        MockQs(result_set),
         "",
         10000,
     )
@@ -46,19 +40,19 @@ def loop_through_qs():
     return results
 
 
-def loop_through_list():
+def loop_through_list(result_set):
     results = []
-    for l in get_list():
+    for l in result_set:
         results.append(l)
     return results
 
 
-def test_speed_of_iterator():
+def test_speed_of_iterator(result_set):
     """
     Test that generator is not much slower than a flat list
     """
-    qs_time = time_func(loop_through_qs)
+    qs_time = time_func(loop_through_qs, result_set)
 
-    range_time = time_func(loop_through_list)
+    range_time = time_func(loop_through_list, result_set)
 
-    assert qs_time * 0.3 < range_time
+    assert qs_time * 0.5 < range_time

@@ -1,6 +1,11 @@
+import sys
 from unittest.mock import call
 
+from dataengineeringutils3.db import SelectQuerySet
+from dataengineeringutils3.s3 import gzip_string_write_to_s3
 from dataengineeringutils3.writer import JsonNlSplitFileWriter
+from tests.helpers import time_func
+from tests.mocks import MockQs
 
 
 def test_large_select_queryset_with_writer(s3, large_select_queryset):
@@ -33,3 +38,50 @@ def test_large_select_queryset_with_writer(s3, large_select_queryset):
         call(10000),
         call(10000),
     ])
+
+
+MAX_BYTES = 80000
+CHUNK_SIZE = 1000
+
+
+def write_with_writer_and_qs(result_set):
+    select_queryset = SelectQuerySet(
+        MockQs(result_set),
+        "",
+        10000,
+    )
+    with JsonNlSplitFileWriter(
+            "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE) as writer:
+        for line in select_queryset:
+            writer.write_line(line)
+
+
+def write_manually(result_set):
+    string = ""
+    num_files = 0
+    num_lines = 0
+    for l in result_set:
+        string += f"{l}"
+        if not num_lines % CHUNK_SIZE and sys.getsizeof(string) > MAX_BYTES:
+            gzip_string_write_to_s3(
+                string, f"s3://test/test-file-two_{num_files}.josnl.gz")
+            num_files += 1
+            num_lines = 0
+            string = ""
+        num_lines += 1
+    if string:
+        gzip_string_write_to_s3(
+            string, f"s3://test/test-file-two_{num_files}.josnl.gz")
+
+
+def test_speed_of_writer_and_iterator(result_set, s3):
+    """
+    Test that generator is not much slower than a flat list
+    """
+    s3.meta.client.create_bucket(Bucket="test")
+
+    qs_time = time_func(write_with_writer_and_qs, result_set)
+
+    range_time = time_func(write_manually, result_set)
+
+    assert qs_time * 0.5 < range_time
