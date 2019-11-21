@@ -1,4 +1,7 @@
+import sys
 from unittest.mock import call
+
+import pytest
 
 from dataengineeringutils3.db import SelectQuerySet
 from tests.helpers import time_func
@@ -31,7 +34,7 @@ def test_select_queryset(select_queryset):
 def get_list():
     return [
         '{"uuid": "fkjherpiutrgponfevpoir3qjgp8prueqhf9pq34hf89hwfpu92q"}'
-    ] * 10000
+    ] * 1000000
 
 
 def loop_through_qs():
@@ -53,6 +56,10 @@ def loop_through_list():
     return results
 
 
+@pytest.mark.skipif(
+    "--cov" in sys.argv,
+    reason="--cov slows down looping generator"
+)
 def test_speed_of_iterator():
     """
     Test that generator is not much slower than a flat list
@@ -61,4 +68,4 @@ def test_speed_of_iterator():
 
     range_time = time_func(loop_through_list)
 
-    assert qs_time * 0.5 < range_time
+    assert qs_time * 0.3 < range_time
