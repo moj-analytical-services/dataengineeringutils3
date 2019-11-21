@@ -31,7 +31,7 @@ def test_select_queryset(select_queryset):
 def get_list():
     return [
         '{"uuid": "fkjherpiutrgponfevpoir3qjgp8prueqhf9pq34hf89hwfpu92q"}'
-    ] * 10000000
+    ] * 10000
 
 
 def loop_through_qs():
