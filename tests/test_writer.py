@@ -30,36 +30,37 @@ CHUNK_SIZE = 1000
 def write_with_writer(result_set):
     with JsonNlSplitFileWriter(
             "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE) as writer:
-        for line in result_set:
-            writer.write_line(line)
+        [writer.write_line(line) for line in result_set]
 
 
 def write_manually(result_set):
     string = ""
     num_files = 0
     num_lines = 0
-    for l in result_set:
-        string += f"{l}"
-        if not num_lines % CHUNK_SIZE and sys.getsizeof(string) > MAX_BYTES:
-            gzip_string_write_to_s3(
-                string, f"s3://test/test-file-two_{num_files}.josnl.gz")
-            num_files += 1
-            num_lines = 0
-            string = ""
-        num_lines += 1
+    while True:
+        for l in result_set:
+            string += f"{l}"
+            if not num_lines % CHUNK_SIZE and sys.getsizeof(string) > MAX_BYTES:
+                gzip_string_write_to_s3(
+                    string, f"s3://test/test-file-two_{num_files}.josnl.gz")
+                num_files += 1
+                num_lines = 0
+                string = ""
+            num_lines += 1
+        break
     if string:
         gzip_string_write_to_s3(
             string, f"s3://test/test-file-two_{num_files}.josnl.gz")
 
 
-def test_speed_of_writer_and_iterator(result_set, s3):
+def test_speed_of_writer(result_set, s3):
     """
     Test that generator is not much slower than a flat list
     """
     s3.meta.client.create_bucket(Bucket="test")
 
-    qs_time = time_func(write_with_writer, result_set)
-
     range_time = time_func(write_manually, result_set)
 
-    assert qs_time * 0.5 < range_time
+    qs_time = time_func(write_with_writer, result_set)
+
+    assert qs_time * 0.7 < range_time

@@ -1,8 +1,3 @@
-import logging
-
-logger = logging.getLogger(__file__)
-
-
 class SelectQuerySet:
     """
     Iterator for fetching select query results in chunks.
@@ -52,8 +47,7 @@ class SelectQuerySet:
     def _fetch_many(self):
         try:
             return self.cursor.fetchmany(self.fetch_size)
-        except Exception as e:
-            logger.warning(e)
+        except Exception:
             return None
 
     @property

@@ -28,22 +28,26 @@ def test_select_queryset(select_queryset):
     ])
 
 
+def gen(result_set):
+    while True:
+        return (l for l in result_set)
+
+
 def loop_through_qs(result_set):
     select_queryset = SelectQuerySet(
         MockQs(result_set),
         "",
-        10000,
+        1000000,
     )
-    results = []
-    for l in select_queryset:
-        results.append(l)
-    return results
+    return [l for l in select_queryset]
 
 
 def loop_through_list(result_set):
     results = []
-    for l in result_set:
-        results.append(l)
+    while True:
+        for l in MockQs(result_set).fetchmany(1000000):
+            results.append(l)
+        break
     return results
 
 
@@ -51,8 +55,8 @@ def test_speed_of_iterator(result_set):
     """
     Test that generator is not much slower than a flat list
     """
-    qs_time = time_func(loop_through_qs, result_set)
-
     range_time = time_func(loop_through_list, result_set)
+
+    qs_time = time_func(loop_through_qs, result_set)
 
     assert qs_time * 0.5 < range_time
