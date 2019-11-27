@@ -59,4 +59,4 @@ def test_speed_of_iterator(result_set):
 
     qs_time = time_func(loop_through_qs, result_set)
 
-    assert qs_time * 0.5 < range_time
+    assert qs_time * 0.4 < range_time

@@ -63,4 +63,4 @@ def test_speed_of_writer(result_set, s3):
 
     qs_time = time_func(write_with_writer, result_set)
 
-    assert qs_time * 0.7 < range_time
+    assert qs_time * 0.6 < range_time

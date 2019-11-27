@@ -55,6 +55,17 @@ def write_with_writer_and_qs(result_set):
         [writer.write_line(line) for line in select_queryset]
 
 
+def write_with_write_to_file(result_set):
+    select_queryset = SelectQuerySet(
+        MockQs(result_set),
+        "",
+        10000,
+    )
+    with JsonNlSplitFileWriter(
+            "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE) as writer:
+        select_queryset.write_to_file(writer)
+
+
 def write_manually(result_set):
     string = ""
     num_files = 0
@@ -85,4 +96,8 @@ def test_speed_of_writer_and_iterator(result_set, s3):
 
     qs_time = time_func(write_with_writer_and_qs, result_set)
 
-    assert qs_time * 0.7 < range_time
+    write_to_file_time = time_func(write_with_write_to_file, result_set)
+
+    assert qs_time * 0.6 < range_time
+
+    assert write_to_file_time * 0.65 < range_time

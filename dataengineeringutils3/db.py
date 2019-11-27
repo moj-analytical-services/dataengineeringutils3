@@ -21,6 +21,12 @@ class SelectQuerySet:
         column_names = select_queryset.headers
         for row in select_queryset:
             writer.write_line(json.dumps(zip(column_names, row), cls=DateTimeEncoder))
+
+    with JsonNlSplitFileWriter("s3://test/test-file.jsonl.gz") as writer:
+        column_names = select_queryset.headers
+        def transform_line(row):
+            return json.dumps(zip(column_names, row), cls=DateTimeEncoder)
+        select_queryset.write_to_file(writer, transform_line)
     """
     def __init__(self, cursor, select_query, fetch_size=1000, **query_kwargs):
         """
@@ -54,3 +60,11 @@ class SelectQuerySet:
     def headers(self):
         """Return column names"""
         return [c[0] for c in self.cursor.description]
+
+    def write_to_file(self, file_writer, line_transform=lambda x: x):
+        while self._result_cache:
+            [
+                file_writer.write_line(line_transform(l))
+                for l in self._result_cache
+            ]
+            self._result_cache = self._fetch_many()
