@@ -106,6 +106,7 @@ def test_speed_of_writer_and_iterator(result_set, s3):
     assert write_to_file_time * 0.6 < range_time
 
 
+@pytest.mark.skipif("--cov-report" in sys.argv, reason="Cov is slow")
 def test_speed_of_write_to_file(result_set, s3):
     """
     Test that generator is not much slower than a flat list
