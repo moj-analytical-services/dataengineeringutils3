@@ -1,5 +1,7 @@
 import sys
 
+import pytest
+
 from dataengineeringutils3.s3 import gzip_string_write_to_s3
 from dataengineeringutils3.writer import JsonNlSplitFileWriter
 from tests.helpers import time_func
@@ -53,6 +55,7 @@ def write_manually(result_set):
             string, f"s3://test/test-file-two_{num_files}.josnl.gz")
 
 
+@pytest.mark.skipif("--cov-report" in sys.argv)
 def test_speed_of_writer(result_set, s3):
     """
     Test that generator is not much slower than a flat list

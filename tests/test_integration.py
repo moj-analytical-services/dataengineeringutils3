@@ -1,6 +1,8 @@
 import sys
 from unittest.mock import call
 
+import pytest
+
 from dataengineeringutils3.db import SelectQuerySet
 from dataengineeringutils3.s3 import gzip_string_write_to_s3
 from dataengineeringutils3.writer import JsonNlSplitFileWriter
@@ -86,6 +88,7 @@ def write_manually(result_set):
             string, f"s3://test/test-file-two_{num_files}.josnl.gz")
 
 
+@pytest.mark.skipif("--cov-report" in sys.argv)
 def test_speed_of_writer_and_iterator(result_set, s3):
     """
     Test that generator is not much slower than a flat list
@@ -100,4 +103,17 @@ def test_speed_of_writer_and_iterator(result_set, s3):
 
     assert qs_time * 0.6 < range_time
 
-    assert write_to_file_time * 0.65 < range_time
+    assert write_to_file_time * 0.6 < range_time
+
+
+def test_speed_of_write_to_file(result_set, s3):
+    """
+    Test that generator is not much slower than a flat list
+    """
+    s3.meta.client.create_bucket(Bucket="test")
+
+    range_time = time_func(write_manually, result_set)
+
+    write_to_file_time = time_func(write_with_write_to_file, result_set)
+
+    assert write_to_file_time * 0.6 < range_time

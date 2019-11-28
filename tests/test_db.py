@@ -1,4 +1,7 @@
+import sys
 from unittest.mock import call
+
+import pytest
 
 from dataengineeringutils3.db import SelectQuerySet
 from tests.helpers import time_func
@@ -51,6 +54,7 @@ def loop_through_list(result_set):
     return results
 
 
+@pytest.mark.skipif("--cov-report" in sys.argv)
 def test_speed_of_iterator(result_set):
     """
     Test that generator is not much slower than a flat list
