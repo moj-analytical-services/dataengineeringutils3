@@ -53,7 +53,7 @@ class SplitFileWriter:
 
     def _write(self, file_path):
         """Writes file part to local storage"""
-        with open(file_path, "rb") as f:
+        with open(file_path, "+wb") as f:
             f.write(bytes(self.string, 'utf-8'))
 
     def write_file(self):

@@ -1,3 +1,4 @@
+import time
 from unittest.mock import Mock
 
 
@@ -19,3 +20,10 @@ def mock_object(cls, *args, **kwargs):
         except AttributeError:
             pass
     return mock_obj
+
+
+def time_func(func, *args, **kwargs):
+    start = time.time()
+    func(*args, **kwargs)
+    end = time.time()
+    return end - start
