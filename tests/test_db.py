@@ -54,7 +54,7 @@ def loop_through_list(result_set):
     return results
 
 
-@pytest.mark.skipif("--cov-report" in sys.argv)
+@pytest.mark.skipif("--cov-report" in sys.argv, reason="Cov is slow")
 def test_speed_of_iterator(result_set):
     """
     Test that generator is not much slower than a flat list

@@ -88,7 +88,7 @@ def write_manually(result_set):
             string, f"s3://test/test-file-two_{num_files}.josnl.gz")
 
 
-@pytest.mark.skipif("--cov-report" in sys.argv)
+@pytest.mark.skipif("--cov-report" in sys.argv, reason="Cov is slow")
 def test_speed_of_writer_and_iterator(result_set, s3):
     """
     Test that generator is not much slower than a flat list
