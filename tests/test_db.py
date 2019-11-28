@@ -42,7 +42,10 @@ def loop_through_qs(result_set):
         "",
         1000000,
     )
-    return [l for l in select_queryset]
+    results = []
+    for l in select_queryset:
+        results.append(l)
+    return results
 
 
 def loop_through_list(result_set):

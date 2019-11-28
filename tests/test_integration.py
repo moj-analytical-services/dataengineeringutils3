@@ -52,6 +52,7 @@ def write_with_writer_and_qs(result_set):
         "",
         10000,
     )
+
     with JsonNlSplitFileWriter(
             "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE) as writer:
         [writer.write_line(line) for line in select_queryset]
@@ -63,18 +64,27 @@ def write_with_write_to_file(result_set):
         "",
         10000,
     )
+
+    def transform_line(l):
+        return l
+
     with JsonNlSplitFileWriter(
             "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE) as writer:
-        select_queryset.write_to_file(writer)
+        # writer.write_lines(result_set, transform_line)
+        select_queryset.write_to_file(writer, transform_line)
 
 
 def write_manually(result_set):
     string = ""
     num_files = 0
     num_lines = 0
+
+    def transform_line(l):
+        return f"{l}"
+
     while True:
         for l in result_set:
-            string += f"{l}"
+            string += transform_line(l)
             if not num_lines % CHUNK_SIZE and sys.getsizeof(string) > MAX_BYTES:
                 gzip_string_write_to_s3(
                     string, f"s3://test/test-file-two_{num_files}.josnl.gz")

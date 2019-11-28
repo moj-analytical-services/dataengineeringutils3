@@ -38,23 +38,14 @@ class SelectQuerySet:
         """
         self.query = select_query
         self.cursor = cursor
+        self.cursor.arraysize = fetch_size
         self.fetch_size = fetch_size
         self.cursor.execute(select_query, **query_kwargs)
-        self._result_cache = self.cursor.fetchmany(self.fetch_size)
 
     def __iter__(self):
         """Reset iterator and n to 0"""
-        while self._result_cache:
-            for r in self._result_cache:
-                yield r
-
-            self._result_cache = self._fetch_many()
-
-    def _fetch_many(self):
-        try:
-            return self.cursor.fetchmany(self.fetch_size)
-        except Exception:
-            return None
+        for r in self.cursor:
+            yield r
 
     @property
     def headers(self):
@@ -62,9 +53,9 @@ class SelectQuerySet:
         return [c[0] for c in self.cursor.description]
 
     def write_to_file(self, file_writer, line_transform=lambda x: x):
-        while self._result_cache:
-            [
-                file_writer.write_line(line_transform(l))
-                for l in self._result_cache
-            ]
-            self._result_cache = self._fetch_many()
+        while True:
+            try:
+                results = self.cursor.fetchmany()
+            except Exception:
+                break
+            file_writer.write_lines(results, line_transform)
