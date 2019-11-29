@@ -17,6 +17,7 @@ def test_json_split_file_writer(s3):
     with JsonNlSplitFileWriter(s3_path, 1024, 2) as writer:
         for i in range(150):
             writer.write_line(f"{i}. This test line number {i + 1}")
+    assert writer.total_lines == 150
     keys_in_bucket = [f"s3://{bucket_name}/{o.key}" for o in bucket.objects.all()]
     files_in_bucket = len(keys_in_bucket)
     assert files_in_bucket == 5
