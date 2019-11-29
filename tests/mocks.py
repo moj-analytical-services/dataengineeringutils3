@@ -5,8 +5,8 @@ class MockCursor:
         self.length = length
         self.description = description
 
-    def __iter__(self):
-        return iter(self._get_results(self.n))
+    def __iter__(self, *args, **kwargs):
+        return iter(self._get_results(self.length))
 
     def _get_results(self, n):
         return [
@@ -31,7 +31,7 @@ class MockQs:
         self.results = results
         self.returned = False
 
-    def __iter__(self):
+    def __iter__(self, *args, **kwargs):
         return iter(self.results)
 
     def execute(self, *args, **kwargs):

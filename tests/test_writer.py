@@ -32,7 +32,7 @@ CHUNK_SIZE = 1000
 def write_with_writer(result_set):
     with JsonNlSplitFileWriter(
             "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE) as writer:
-        [writer.write_line(line) for line in result_set]
+        writer.write_lines(result_set)
 
 
 def write_manually(result_set):
@@ -55,7 +55,6 @@ def write_manually(result_set):
             string, f"s3://test/test-file-two_{num_files}.josnl.gz")
 
 
-@pytest.mark.skipif("--cov-report" in sys.argv, reason="Cov is slow")
 def test_speed_of_writer(result_set, s3):
     """
     Test that generator is not much slower than a flat list
@@ -66,4 +65,4 @@ def test_speed_of_writer(result_set, s3):
 
     qs_time = time_func(write_with_writer, result_set)
 
-    assert qs_time * 0.6 < range_time
+    assert qs_time < range_time

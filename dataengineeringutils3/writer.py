@@ -51,10 +51,10 @@ class SplitFileWriter:
                 and sys.getsizeof(self.string) > self.max_bytes:
             self.write_file()
 
-    def write_all_lines(self, lines, line_transform):
+    def write_all_lines(self, lines, line_transform=lambda x: x):
         [self.write_line(line_transform(line)) for line in lines]
 
-    def write_lines(self, lines, line_transform):
+    def write_lines(self, lines, line_transform=lambda x: x):
         self.string += "\n".join(line_transform(l) for l in lines)
         self.num_lines += len(lines)
         if not self.num_lines % self.chunk_size \

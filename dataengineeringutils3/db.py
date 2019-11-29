@@ -27,6 +27,13 @@ class SelectQuerySet:
         def transform_line(row):
             return json.dumps(zip(column_names, row), cls=DateTimeEncoder)
         select_queryset.write_to_file(writer, transform_line)
+
+    with JsonNlSplitFileWriter("s3://test/test-file.jsonl.gz") as writer:
+        column_names = select_queryset.headers
+        def transform_line(row):
+            return json.dumps(zip(column_names, row), cls=DateTimeEncoder)
+        for results in select_queryset.iter_chunks():
+            writer.write_lines(results, transform_line)
     """
     def __init__(self, cursor, select_query, fetch_size=1000, **query_kwargs):
         """
@@ -47,15 +54,21 @@ class SelectQuerySet:
         for r in self.cursor:
             yield r
 
+    def iter_chunks(self):
+        results = self.cursor.fetchmany(self.fetch_size)
+        while results:
+            yield results
+            try:
+                results = self.cursor.fetchmany(self.fetch_size)
+            except Exception:
+                results = None
+                break
+
     @property
     def headers(self):
         """Return column names"""
         return [c[0] for c in self.cursor.description]
 
     def write_to_file(self, file_writer, line_transform=lambda x: x):
-        while True:
-            try:
-                results = self.cursor.fetchmany()
-            except Exception:
-                break
+        for results in self.iter_chunks():
             file_writer.write_lines(results, line_transform)
