@@ -5,6 +5,9 @@ class MockCursor:
         self.length = length
         self.description = description
 
+    def __iter__(self, *args, **kwargs):
+        return iter(self._get_results(self.length))
+
     def _get_results(self, n):
         return [
             '{"uuid": "fkjherpiutrgponfevpoir3qjgp8prueqhf9pq34hf89hwfpu92q"}'
@@ -27,6 +30,9 @@ class MockQs:
     def __init__(self, results):
         self.results = results
         self.returned = False
+
+    def __iter__(self, *args, **kwargs):
+        return iter(self.results)
 
     def execute(self, *args, **kwargs):
         pass

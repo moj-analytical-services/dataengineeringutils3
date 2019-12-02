@@ -20,8 +20,8 @@ def test_large_select_queryset_with_writer(s3, large_select_queryset):
     s3.meta.client.create_bucket(Bucket=bucket_name)
     bucket = s3.Bucket(bucket_name)
     with JsonNlSplitFileWriter(s3_path, 1024, 10000) as writer:
-        for line in large_select_queryset:
-            writer.write_line(line)
+        for rows in large_select_queryset.iter_chunks():
+            writer.write_lines(rows)
 
     keys_in_bucket = [f"s3://{bucket_name}/{o.key}" for o in bucket.objects.all()]
     files_in_bucket = len(keys_in_bucket)
@@ -52,9 +52,11 @@ def write_with_writer_and_qs(result_set):
         "",
         10000,
     )
+
     with JsonNlSplitFileWriter(
             "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE) as writer:
-        [writer.write_line(line) for line in select_queryset]
+        for results in select_queryset.iter_chunks():
+            writer.write_lines(results)
 
 
 def write_with_write_to_file(result_set):
@@ -63,18 +65,26 @@ def write_with_write_to_file(result_set):
         "",
         10000,
     )
+
+    def transform_line(l):
+        return l
+
     with JsonNlSplitFileWriter(
             "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE) as writer:
-        select_queryset.write_to_file(writer)
+        select_queryset.write_to_file(writer, transform_line)
 
 
 def write_manually(result_set):
     string = ""
     num_files = 0
     num_lines = 0
+
+    def transform_line(l):
+        return f"{l}"
+
     while True:
         for l in result_set:
-            string += f"{l}"
+            string += transform_line(l)
             if not num_lines % CHUNK_SIZE and sys.getsizeof(string) > MAX_BYTES:
                 gzip_string_write_to_s3(
                     string, f"s3://test/test-file-two_{num_files}.josnl.gz")
@@ -88,7 +98,6 @@ def write_manually(result_set):
             string, f"s3://test/test-file-two_{num_files}.josnl.gz")
 
 
-@pytest.mark.skipif("--cov-report" in sys.argv, reason="Cov is slow")
 def test_speed_of_writer_and_iterator(result_set, s3):
     """
     Test that generator is not much slower than a flat list
@@ -99,14 +108,9 @@ def test_speed_of_writer_and_iterator(result_set, s3):
 
     qs_time = time_func(write_with_writer_and_qs, result_set)
 
-    write_to_file_time = time_func(write_with_write_to_file, result_set)
-
-    assert qs_time * 0.6 < range_time
-
-    assert write_to_file_time * 0.6 < range_time
+    assert qs_time < range_time
 
 
-@pytest.mark.skipif("--cov-report" in sys.argv, reason="Cov is slow")
 def test_speed_of_write_to_file(result_set, s3):
     """
     Test that generator is not much slower than a flat list
@@ -117,4 +121,4 @@ def test_speed_of_write_to_file(result_set, s3):
 
     write_to_file_time = time_func(write_with_write_to_file, result_set)
 
-    assert write_to_file_time * 0.6 < range_time
+    assert write_to_file_time < range_time

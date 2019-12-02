@@ -14,8 +14,9 @@ def test_select_queryset(select_queryset):
     on the cursor.
     """
     results = []
-    for res in select_queryset:
-        results.append(res)
+    for rows in select_queryset.iter_chunks():
+        for res in rows:
+            results.append(res)
     assert results == [
         '{"uuid": "fkjherpiutrgponfevpoir3qjgp8prueqhf9pq34hf89hwfpu92q"}'
     ] * 15
@@ -42,7 +43,9 @@ def loop_through_qs(result_set):
         "",
         1000000,
     )
-    return [l for l in select_queryset]
+    results = []
+    [results.append(l) for rows in select_queryset.iter_chunks() for l in rows]
+    return results
 
 
 def loop_through_list(result_set):
@@ -54,7 +57,6 @@ def loop_through_list(result_set):
     return results
 
 
-@pytest.mark.skipif("--cov-report" in sys.argv, reason="Cov is slow")
 def test_speed_of_iterator(result_set):
     """
     Test that generator is not much slower than a flat list
@@ -63,4 +65,4 @@ def test_speed_of_iterator(result_set):
 
     qs_time = time_func(loop_through_qs, result_set)
 
-    assert qs_time * 0.4 < range_time
+    assert qs_time * 0.8 < range_time

@@ -18,7 +18,10 @@ def mock_object(cls, *args, **kwargs):
         try:
             getattr(mock_obj, attr_name).side_effect = getattr(obj, attr_name)
         except AttributeError:
-            pass
+            if attr_name == "__iter__":
+                setattr(mock_obj, attr_name, getattr(obj, attr_name))
+                mock_obj.__iter__.return_value = obj.__iter__()
+                continue
     return mock_obj
 
 

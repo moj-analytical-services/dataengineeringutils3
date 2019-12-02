@@ -51,6 +51,15 @@ class SplitFileWriter:
                 and sys.getsizeof(self.string) > self.max_bytes:
             self.write_file()
 
+    def write_all_lines(self, lines, line_transform=lambda x: x):
+        [self.write_line(line_transform(line)) for line in lines]
+
+    def write_lines(self, lines, line_transform=lambda x: x):
+        self.string += "\n".join(line_transform(l) for l in lines)
+        self.num_lines += len(lines)
+        if sys.getsizeof(self.string) > self.max_bytes:
+            self.write_file()
+
     def _write(self, file_path):
         """Writes file part to local storage"""
         with open(file_path, "+wb") as f:
