@@ -55,7 +55,7 @@ class SplitFileWriter:
         [self.write_line(line_transform(line)) for line in lines]
 
     def write_lines(self, lines, line_transform=lambda x: x):
-        self.string += "\n".join(line_transform(l) for l in lines)
+        self.string += "\n".join(line_transform(l) for l in lines) + "\n"
         self.num_lines += len(lines)
         if sys.getsizeof(self.string) > self.max_bytes:
             self.write_file()
