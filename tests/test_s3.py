@@ -4,7 +4,8 @@ import pytest
 
 from dataengineeringutils3.s3 import (
     s3_path_to_bucket_key,
-    gzip_string_write_to_s3
+    gzip_string_write_to_s3,
+    get_filepaths_from_s3_folder
 )
 
 
@@ -33,3 +34,33 @@ def test_gzip_string_write_to_s3(s3):
     file_object = io.BytesIO()
     s3.Object(bucket_name, file_key).download_fileobj(file_object)
     assert gzip.decompress(file_object.getvalue()).decode("utf-8") == file_text
+
+def test_get_filepaths_from_s3_folder(s3):
+
+    folder = "my-folder"
+    bucket_name = "test"
+
+    files = [
+        {"folder": "f1", "key": "my_file.json", "body": "test"},
+        {"folder": "f1", "key": "df.first.py", "body": "test"},
+        {"folder": "f1", "key": "otherfile.json", "body": ""},
+        {"folder": "f", "key": "ffile.json", "body": "test"},
+        {"folder": "f.2", "key": "otherfile.json", "body": "test"}
+    ]
+
+    s3.meta.client.create_bucket(Bucket=bucket_name)
+
+    for f in files:
+        s3.Object(bucket_name, f["folder"] + "/" + f["key"]).put(Body=f["body"])
+
+    fps = get_filepaths_from_s3_folder("s3://test/f1")
+    assert fps == ['s3://test/f1/df.first.py', 's3://test/f1/my_file.json']
+
+    fps = get_filepaths_from_s3_folder("s3://test/f1/", exclude_zero_byte_files=False)
+    assert fps == ['s3://test/f1/df.first.py', 's3://test/f1/my_file.json', 's3://test/f1/otherfile.json']
+
+    fps = get_filepaths_from_s3_folder("s3://test/f")
+    assert fps == ['s3://test/f/ffile.json']
+
+    fps = get_filepaths_from_s3_folder("s3://test/f1", file_extension="json", exclude_zero_byte_files=False)
+    assert fps == ['s3://test/f1/my_file.json', 's3://test/f1/otherfile.json']
