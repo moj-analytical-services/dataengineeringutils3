@@ -1,4 +1,5 @@
 import gzip
+
 import boto3
 
 def gzip_string_write_to_s3(file_as_string, s3_path):
@@ -25,7 +26,7 @@ def bucket_key_to_s3_path(bucket, key):
     """
     Takes an S3 bucket and key combination and returns the full S3 path to that location.
     """
-    return "s3://{}/{}".format(bucket, key)
+    return f"s3://{bucket}/{key}"
 
 def _add_slash(s):
     """
