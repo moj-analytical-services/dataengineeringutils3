@@ -2,6 +2,7 @@ import gzip
 
 import boto3
 
+
 def gzip_string_write_to_s3(file_as_string, s3_path):
     """
     Writes IoString to s3 path as gziped output
@@ -11,7 +12,7 @@ def gzip_string_write_to_s3(file_as_string, s3_path):
     """
     s3_resource = boto3.resource("s3")
     b, k = s3_path_to_bucket_key(s3_path)
-    compressed_out = gzip.compress(bytes(file_as_string, 'utf-8'))
+    compressed_out = gzip.compress(bytes(file_as_string, "utf-8"))
     s3_resource.Object(b, k).put(Body=compressed_out)
 
 
@@ -28,11 +29,13 @@ def bucket_key_to_s3_path(bucket, key):
     """
     return f"s3://{bucket}/{key}"
 
+
 def _add_slash(s):
     """
     Adds slash to end of string
     """
     return s if s[-1] == "/" else s + "/"
+
 
 def get_filepaths_from_s3_folder(
     s3_folder_path, file_extension=None, exclude_zero_byte_files=True

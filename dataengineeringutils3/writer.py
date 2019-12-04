@@ -16,6 +16,7 @@ class SplitFileWriter:
         for line in lines:
             writer.write_line(line)
     """
+
     extension = ""
 
     def __init__(self, outfile_path, max_bytes=800000000, chunk_size=1000):
@@ -47,8 +48,10 @@ class SplitFileWriter:
         """Writes line as string"""
         self.string += f"{line}\n"
         self.num_lines += 1
-        if not self.num_lines % self.chunk_size \
-                and sys.getsizeof(self.string) > self.max_bytes:
+        if (
+            not self.num_lines % self.chunk_size
+            and sys.getsizeof(self.string) > self.max_bytes
+        ):
             self.write_file()
 
     def write_all_lines(self, lines, line_transform=lambda x: x):
@@ -63,7 +66,7 @@ class SplitFileWriter:
     def _write(self, file_path):
         """Writes file part to local storage"""
         with open(file_path, "+wb") as f:
-            f.write(bytes(self.string, 'utf-8'))
+            f.write(bytes(self.string, "utf-8"))
 
     def write_file(self):
         """Writes and updates number of files and sets lines to 0"""

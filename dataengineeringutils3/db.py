@@ -35,6 +35,7 @@ class SelectQuerySet:
         for results in select_queryset.iter_chunks():
             writer.write_lines(results, transform_line)
     """
+
     def __init__(self, cursor, select_query, fetch_size=1000, **query_kwargs):
         """
         Sets the curser, query and executes
