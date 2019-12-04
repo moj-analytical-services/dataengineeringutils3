@@ -1,8 +1,5 @@
 import gzip
-
 import boto3
-
-
 
 def gzip_string_write_to_s3(file_as_string, s3_path):
     """
