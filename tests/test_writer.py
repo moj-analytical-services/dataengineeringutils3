@@ -21,9 +21,7 @@ def test_json_split_file_writer(s3):
     keys_in_bucket = [f"s3://{bucket_name}/{o.key}" for o in bucket.objects.all()]
     files_in_bucket = len(keys_in_bucket)
     assert files_in_bucket == 5
-    assert keys_in_bucket == [
-        f"{s3_path}_{i}.jsonl.gz" for i in range(files_in_bucket)
-    ]
+    assert keys_in_bucket == [f"{s3_path}_{i}.jsonl.gz" for i in range(files_in_bucket)]
 
 
 MAX_BYTES = 80000
@@ -32,7 +30,8 @@ CHUNK_SIZE = 1000
 
 def write_with_writer(result_set):
     with JsonNlSplitFileWriter(
-            "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE) as writer:
+        "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE
+    ) as writer:
         writer.write_lines(result_set)
 
 
@@ -45,15 +44,15 @@ def write_manually(result_set):
             string += f"{l}"
             if not num_lines % CHUNK_SIZE and sys.getsizeof(string) > MAX_BYTES:
                 gzip_string_write_to_s3(
-                    string, f"s3://test/test-file-two_{num_files}.josnl.gz")
+                    string, f"s3://test/test-file-two_{num_files}.josnl.gz"
+                )
                 num_files += 1
                 num_lines = 0
                 string = ""
             num_lines += 1
         break
     if string:
-        gzip_string_write_to_s3(
-            string, f"s3://test/test-file-two_{num_files}.josnl.gz")
+        gzip_string_write_to_s3(string, f"s3://test/test-file-two_{num_files}.josnl.gz")
 
 
 def test_speed_of_writer(result_set, s3):

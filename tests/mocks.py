@@ -1,5 +1,6 @@
 class MockCursor:
     """Mocks cursor object for testing fetchmany db results"""
+
     def __init__(self, length, description=[]):
         self.n = 0
         self.length = length
@@ -9,9 +10,7 @@ class MockCursor:
         return iter(self._get_results(self.length))
 
     def _get_results(self, n):
-        return [
-            '{"uuid": "fkjherpiutrgponfevpoir3qjgp8prueqhf9pq34hf89hwfpu92q"}'
-        ] * n
+        return ['{"uuid": "fkjherpiutrgponfevpoir3qjgp8prueqhf9pq34hf89hwfpu92q"}'] * n
 
     def execute(self, *args, **kwargs):
         pass
@@ -21,7 +20,7 @@ class MockCursor:
             raise StopIteration()
         self.n += fetch_size
         if self.n > self.length:
-            fetch_size -= (self.n - self.length)
+            fetch_size -= self.n - self.length
             self.n = self.length
         return self._get_results(fetch_size)
 

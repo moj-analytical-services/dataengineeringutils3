@@ -12,6 +12,7 @@ class DateTimeEncoder(json.JSONEncoder):
     }
     json_str = json.dumps(json_dict, cls=DateTimeEncoder)
     """
+
     def default(self, o):
         if isinstance(o, datetime):
             return o.isoformat()

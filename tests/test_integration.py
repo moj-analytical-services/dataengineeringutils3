@@ -27,19 +27,21 @@ def test_large_select_queryset_with_writer(s3, large_select_queryset):
     files_in_bucket = len(keys_in_bucket)
     assert files_in_bucket == 10
 
-    large_select_queryset.cursor.fetchmany.assert_has_calls([
-        call(10000),
-        call(10000),
-        call(10000),
-        call(10000),
-        call(10000),
-        call(10000),
-        call(10000),
-        call(10000),
-        call(10000),
-        call(10000),
-        call(10000),
-    ])
+    large_select_queryset.cursor.fetchmany.assert_has_calls(
+        [
+            call(10000),
+            call(10000),
+            call(10000),
+            call(10000),
+            call(10000),
+            call(10000),
+            call(10000),
+            call(10000),
+            call(10000),
+            call(10000),
+            call(10000),
+        ]
+    )
 
 
 MAX_BYTES = 80000
@@ -47,30 +49,24 @@ CHUNK_SIZE = 1000
 
 
 def write_with_writer_and_qs(result_set):
-    select_queryset = SelectQuerySet(
-        MockQs(result_set),
-        "",
-        10000,
-    )
+    select_queryset = SelectQuerySet(MockQs(result_set), "", 10000,)
 
     with JsonNlSplitFileWriter(
-            "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE) as writer:
+        "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE
+    ) as writer:
         for results in select_queryset.iter_chunks():
             writer.write_lines(results)
 
 
 def write_with_write_to_file(result_set):
-    select_queryset = SelectQuerySet(
-        MockQs(result_set),
-        "",
-        10000,
-    )
+    select_queryset = SelectQuerySet(MockQs(result_set), "", 10000,)
 
     def transform_line(l):
         return l
 
     with JsonNlSplitFileWriter(
-            "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE) as writer:
+        "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE
+    ) as writer:
         select_queryset.write_to_file(writer, transform_line)
 
 
@@ -87,15 +83,15 @@ def write_manually(result_set):
             string += transform_line(l)
             if not num_lines % CHUNK_SIZE and sys.getsizeof(string) > MAX_BYTES:
                 gzip_string_write_to_s3(
-                    string, f"s3://test/test-file-two_{num_files}.josnl.gz")
+                    string, f"s3://test/test-file-two_{num_files}.josnl.gz"
+                )
                 num_files += 1
                 num_lines = 0
                 string = ""
             num_lines += 1
         break
     if string:
-        gzip_string_write_to_s3(
-            string, f"s3://test/test-file-two_{num_files}.josnl.gz")
+        gzip_string_write_to_s3(string, f"s3://test/test-file-two_{num_files}.josnl.gz")
 
 
 def test_speed_of_writer_and_iterator(result_set, s3):
