@@ -112,7 +112,9 @@ def write_json_to_s3(data, s3_path, *args, **kwargs):
     return log_upload_resp
 
 
-def copy_s3_folder_contents_to_new_folder(from_s3_folder_path, to_s3_folder_path):
+def copy_s3_folder_contents_to_new_folder(
+    from_s3_folder_path, to_s3_folder_path, exclude_zero_byte_files=False
+):
     """
     Copies complete folder structure within from_s3_folder_path to the to_s3_folder_path.
     Note any s3 objects in the destination folder will be overwritten if it matches the
@@ -123,7 +125,9 @@ def copy_s3_folder_contents_to_new_folder(from_s3_folder_path, to_s3_folder_path
     from_s3_folder_path = _add_slash(from_s3_folder_path)
     to_s3_folder_path = _add_slash(to_s3_folder_path)
 
-    all_from_filepaths = get_filepaths_from_s3_folder(from_s3_folder_path)
+    all_from_filepaths = get_filepaths_from_s3_folder(
+        from_s3_folder_path, exclude_zero_byte_files=False
+    )
     for afp in all_from_filepaths:
         tfp = afp.replace(from_s3_folder_path, to_s3_folder_path)
         copy_s3_object(afp, tfp)
@@ -187,25 +191,3 @@ def check_for_s3_file(s3_path):
     else:
         # The object does exist.
         return True
-
-
-def folder_contains_only_files_with_extension(s3_folder_path, file_extension):
-    """
-    Checks if a folder contains any data (ingores zero-byte files) can also filter by extension.
-    :param s3_folder_path: S3 folder path to check "s3://...."
-    :param file_extension: file extension you want to check for
-    :returns: Boolean stating if folder only contains files with specified extension
-
-    :Example:
-
-    # Check if if folder only contains parquet files
-    exists = folder_contains_only_files_with_extension("s3://my-bucket/data/", '.parquet').
-    # Or check if only csv files exists in data
-    exists = folder_contains_only_files_with_extension("s3://my-bucket/data/", '.csv')
-    """
-    if extension[0] != ".":
-        extension = "." + extension
-    all_p = get_filepaths_from_s3_folder(s3_folder_path)
-    all_p_extension = [a for a in all_p if a.endswith(extension)]
-
-    return len(all_p_extension) == len(all_p) and len(all_p_extension) != 0
