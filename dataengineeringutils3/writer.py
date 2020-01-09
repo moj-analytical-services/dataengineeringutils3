@@ -3,12 +3,10 @@ import os
 import gzip
 import boto3
 
-from dataengineeringutils3.s3 import (
-    gzip_string_write_to_s3,
-    s3_path_to_bucket_key,
-)
+from dataengineeringutils3.s3 import gzip_string_write_to_s3, s3_path_to_bucket_key
 
 from io import BytesIO, StringIO
+
 
 class BaseSplitFileWriter:
     """
@@ -48,7 +46,14 @@ class BaseSplitFileWriter:
     bsfw.close()
     """
 
-    def __init__(self, s3_basepath, filename_prefix, max_bytes=1000000000, compress_on_upload=True, file_extension=None):
+    def __init__(
+        self,
+        s3_basepath,
+        filename_prefix,
+        max_bytes=1000000000,
+        compress_on_upload=True,
+        file_extension=None,
+    ):
         self.filename_prefix = filename_prefix
         self.s3_basepath = s3_basepath
         self.max_bytes = max_bytes
@@ -83,12 +88,10 @@ class BaseSplitFileWriter:
         if self.file_size_limit_reached():
             self.write_to_s3()
 
-
     def writelines(self, lines):
         self.mem_file.writelines(lines)
         if self.file_size_limit_reached():
             self.write_to_s3()
-
 
     def file_size_limit_reached(self):
         if (self.max_bytes) and (self.mem_file.tell() > self.max_bytes):
@@ -102,9 +105,9 @@ class BaseSplitFileWriter:
         data = self.mem_file.getvalue()
         if self.compress_on_upload:
             data = self._compress_data(data)
-        
+
         s3_resource.Object(b, k).put(Body=data)
-        
+
         self.reset_file_buffer()
 
     def reset_file_buffer(self):
@@ -157,6 +160,7 @@ class BytesSplitFileWriter(BaseSplitFileWriter):
     # Closing the objects sends off the remaining data in the io buffer
     bsfw.close()
     """
+
     def get_new_mem_file(self):
         return BytesIO()
 
@@ -195,6 +199,7 @@ class StringSplitFileWriter(BaseSplitFileWriter):
     # Closing the objects sends off the remaining data in the io buffer
     ssfw.close()
     """
+
     def get_new_mem_file(self):
         return StringIO()
 

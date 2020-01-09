@@ -6,48 +6,57 @@ import csv
 from io import StringIO, BytesIO
 
 from dataengineeringutils3.s3 import gzip_string_write_to_s3
-from dataengineeringutils3.writer import (
-    BytesSplitFileWriter,
-    StringSplitFileWriter
-)
+from dataengineeringutils3.writer import BytesSplitFileWriter, StringSplitFileWriter
 from tests.helpers import time_func
 
 import jsonlines
 
+
 @pytest.mark.parametrize(
-    "folder,filename,compress",
-    [
-        ("test-csv/", "test-file", False),
-        ("", "a", True),
-    ],
+    "folder,filename,compress", [("test-csv/", "test-file", False), ("", "a", True)]
 )
 def test_with_csv_string_split_file_writer(s3, folder, filename, compress):
     """Test string writer with statement csv"""
     bucket_name = "test"
     s3.meta.client.create_bucket(Bucket=bucket_name)
 
-    csv_data = [("i","x1","x2"), (1,"a","b"), (2,"a","b"), (3,"a","b"),(4,"a","b"),(5,"a","b"),(6,"a","b"),(7,"a","b")]
+    csv_data = [
+        ("i", "x1", "x2"),
+        (1, "a", "b"),
+        (2, "a", "b"),
+        (3, "a", "b"),
+        (4, "a", "b"),
+        (5, "a", "b"),
+        (6, "a", "b"),
+        (7, "a", "b"),
+    ]
 
     expected_file = StringIO()
     e_csv_writer = csv.writer(expected_file)
 
     ext = "csv.gz" if compress else "csv"
-    
+
     # Test using with statement
-    with StringSplitFileWriter(f"s3://{bucket_name}/{folder}", filename, max_bytes=30, compress_on_upload=compress, file_extension=ext) as f:
+    with StringSplitFileWriter(
+        f"s3://{bucket_name}/{folder}",
+        filename,
+        max_bytes=30,
+        compress_on_upload=compress,
+        file_extension=ext,
+    ) as f:
         csv_writer = csv.writer(f)
         for row in csv_data:
             csv_writer.writerow(row)
             e_csv_writer.writerow(row)
 
     actual_s3_objects = sorted([o.key for o in s3.Bucket(bucket_name).objects.all()])
-    
+
     # Test files written to s3
     expected_s3_objects = [f"{folder}{filename}-0.{ext}", f"{folder}{filename}-1.{ext}"]
     assert expected_s3_objects == actual_s3_objects
 
     expected = expected_file.getvalue()
-    
+
     # Test file contents
     actual = ""
     for expeceted_object in expected_s3_objects:
@@ -63,26 +72,37 @@ def test_with_csv_string_split_file_writer(s3, folder, filename, compress):
 
 
 @pytest.mark.parametrize(
-    "folder,filename,compress",
-    [
-        ("test-csv/", "test-file", False),
-        ("", "a", True),
-    ],
+    "folder,filename,compress", [("test-csv/", "test-file", False), ("", "a", True)]
 )
 def test_csv_string_split_file_writer(s3, folder, filename, compress):
     """Test string writer csv"""
     bucket_name = "test"
     s3.meta.client.create_bucket(Bucket=bucket_name)
 
-    csv_data = [("i","x1","x2"), (1,"a","b"), (2,"a","b"), (3,"a","b"),(4,"a","b"),(5,"a","b"),(6,"a","b"),(7,"a","b")]
+    csv_data = [
+        ("i", "x1", "x2"),
+        (1, "a", "b"),
+        (2, "a", "b"),
+        (3, "a", "b"),
+        (4, "a", "b"),
+        (5, "a", "b"),
+        (6, "a", "b"),
+        (7, "a", "b"),
+    ]
 
     expected_file = StringIO()
     e_csv_writer = csv.writer(expected_file)
 
     ext = "csv.gz" if compress else "csv"
-    
+
     # Test using with statement
-    f = StringSplitFileWriter(f"s3://{bucket_name}/{folder}", filename, max_bytes=30, compress_on_upload=compress, file_extension=ext)
+    f = StringSplitFileWriter(
+        f"s3://{bucket_name}/{folder}",
+        filename,
+        max_bytes=30,
+        compress_on_upload=compress,
+        file_extension=ext,
+    )
     csv_writer = csv.writer(f)
     for row in csv_data:
         csv_writer.writerow(row)
@@ -90,12 +110,11 @@ def test_csv_string_split_file_writer(s3, folder, filename, compress):
     f.close()
 
     actual_s3_objects = sorted([o.key for o in s3.Bucket(bucket_name).objects.all()])
-    
+
     # Test files written to s3
     expected_s3_objects = [f"{folder}{filename}-0.{ext}", f"{folder}{filename}-1.{ext}"]
     assert expected_s3_objects == actual_s3_objects
 
-    
     # Test file contents
     expected = expected_file.getvalue()
     actual = ""
@@ -122,48 +141,62 @@ def test_csv_string_split_file_writer(s3, folder, filename, compress):
 )
 def test_split_file_writer_with_json(s3, folder, filename, compress, filewriter_type):
     """Test jsonline string and bytes writer"""
-    
+
     bucket_name = "test"
     ext = "jsonl.gz" if compress else "jsonl"
 
     s3.meta.client.create_bucket(Bucket=bucket_name)
 
     jsonl_data = [
-        {"i": 1, "x1": "a","x2": "b"},
-        {"i": 2, "x1": "a","x2": "b"},
-        {"i": 3, "x1": "a","x2": "b"},
-        {"i": 4, "x1": "a","x2": "b"},
-        {"i": 5, "x1": "a","x2": "b"},
+        {"i": 1, "x1": "a", "x2": "b"},
+        {"i": 2, "x1": "a", "x2": "b"},
+        {"i": 3, "x1": "a", "x2": "b"},
+        {"i": 4, "x1": "a", "x2": "b"},
+        {"i": 5, "x1": "a", "x2": "b"},
     ]
 
     if filewriter_type == "string":
-        f = StringSplitFileWriter(f"s3://{bucket_name}/{folder}", filename, max_bytes=60, compress_on_upload=compress, file_extension=ext)
+        f = StringSplitFileWriter(
+            f"s3://{bucket_name}/{folder}",
+            filename,
+            max_bytes=60,
+            compress_on_upload=compress,
+            file_extension=ext,
+        )
 
     elif filewriter_type == "bytes":
-        f = BytesSplitFileWriter(f"s3://{bucket_name}/{folder}", filename, max_bytes=60, compress_on_upload=compress, file_extension=ext)
+        f = BytesSplitFileWriter(
+            f"s3://{bucket_name}/{folder}",
+            filename,
+            max_bytes=60,
+            compress_on_upload=compress,
+            file_extension=ext,
+        )
 
     else:
         raise ValueError("Input filewriter_type must be either 'string' or 'bytes'")
 
-    
-
     # Write data
     j_writer = jsonlines.Writer(f)
-    
+
     expected_file = StringIO()
     e_j_writer = jsonlines.Writer(expected_file)
-    
+
     for row in jsonl_data:
         j_writer.write(row)
         e_j_writer.write(row)
     f.close()
 
     actual_s3_objects = sorted([o.key for o in s3.Bucket(bucket_name).objects.all()])
-    
+
     # Test files written to s3
-    expected_s3_objects = [f"{folder}{filename}-0.{ext}", f"{folder}{filename}-1.{ext}", f"{folder}{filename}-2.{ext}"]
+    expected_s3_objects = [
+        f"{folder}{filename}-0.{ext}",
+        f"{folder}{filename}-1.{ext}",
+        f"{folder}{filename}-2.{ext}",
+    ]
     assert expected_s3_objects == actual_s3_objects
-    
+
     # Test file contents
     expected = expected_file.getvalue()
     actual = ""

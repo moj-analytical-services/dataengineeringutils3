@@ -49,7 +49,7 @@ CHUNK_SIZE = 1000
 
 
 def write_with_writer_and_qs(result_set):
-    select_queryset = SelectQuerySet(MockQs(result_set), "", 10000,)
+    select_queryset = SelectQuerySet(MockQs(result_set), "", 10000)
 
     with JsonNlSplitFileWriter(
         "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE
@@ -59,7 +59,7 @@ def write_with_writer_and_qs(result_set):
 
 
 def write_with_write_to_file(result_set):
-    select_queryset = SelectQuerySet(MockQs(result_set), "", 10000,)
+    select_queryset = SelectQuerySet(MockQs(result_set), "", 10000)
 
     def transform_line(l):
         return l

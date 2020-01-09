@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dataengineeringutils3"
-version = "0.2.2"
+version = "1.0.0"
 description = "Data engineering utils python 3 version"
 authors = ["Josh Rowe <josh.rowe@digital.justice.gov.uk>"]
 license = "MIT"
@@ -25,6 +25,7 @@ pytest = "^3.4"
 moto = "^1.3"
 pytest-cov = "^2.8"
 boto3 = "^1.10"
+jsonlines = "^1.2"
 
 [build-system]
 requires = ["poetry>=0.12"]
