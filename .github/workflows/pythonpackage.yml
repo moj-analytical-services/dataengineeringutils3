@@ -39,7 +39,7 @@ jobs:
         COVERALLS_SERVICE_NAME: github
         GIT_COMMIT: ${{ github.sha }}
       run: |
-        pip install pytest pytest-cov poetry boto3 moto coveralls
+        pip install poetry coveralls
         poetry install
         poetry run pytest --cov-report term-missing --cov=dataengineeringutils3 tests/
         export GIT_BRANCH=$(echo "${{ github.ref }}" | sed "s/refs\/heads\///")
