@@ -21,7 +21,7 @@ class BaseSplitFileWriter:
     :param s3_basepath: The base path to the s3 location you want to write to S3://...
     :param filename_prefix: The filename that you want to keep constant. Every written file is prefixed with this string.
     S3 objects written will end in the file number and the extension.
-    :param max_bytes: The maximum number of bytes for each file (uncompressed file size) default set at 1GB.
+    :param max_bytes: The maximum number of bytes for each file (uncompressed file size) default set at 1GB.
     :param compress_on_upload: If the file should be compressed before writing to S3 (default True). Note does not affect 
     the file_extension parameter.
     :param file_extension: String representing the file extension. Should not be prefixed with a '.'.
@@ -136,7 +136,7 @@ class BytesSplitFileWriter(BaseSplitFileWriter):
     :param s3_basepath: The base path to the s3 location you want to write to S3://...
     :param filename_prefix: The filename that you want to keep constant. Every written file is prefixed with this string.
     S3 objects written will end in the file number and the extension.
-    :param max_bytes: The maximum number of bytes for each file (uncompressed file size) default set at 1GB.
+    :param max_bytes: The maximum number of bytes for each file (uncompressed file size) default set at 1GB.
     :param compress_on_upload: If the file should be compressed before writing to S3 (default True). Note does not affect 
     the file_extension parameter.
     :param file_extension: String representing the file extension. Should not be prefixed with a '.'.
@@ -171,11 +171,10 @@ class StringSplitFileWriter(BaseSplitFileWriter):
     writing to s3. Data is written to a StringIO file buffer until it hits a
     max_bytes limit at which point the data is written to S3
     as single file.
-
     :param s3_basepath: The base path to the s3 location you want to write to S3://...
     :param filename_prefix: The filename that you want to keep constant. Every written file is prefixed with this string.
     S3 objects written will end in the file number and the extension.
-    :param max_bytes: The maximum number of bytes for each file (uncompressed file size) default set at 1GB.
+    :param max_bytes: The maximum number of bytes for each file (uncompressed file size) default set at 1GB.
     :param compress_on_upload: If the file should be compressed before writing to S3 (default True). Note does not affect 
     the file_extension parameter.
     :param file_extension: String representing the file extension. Should not be prefixed with a '.'.
@@ -208,3 +207,85 @@ class StringSplitFileWriter(BaseSplitFileWriter):
         Converts string data to bytes and then compresses
         """
         return gzip.compress(bytes(data, "utf-8"))
+
+
+class JsonNlSplitFileWriter(BaseSplitFileWriter):
+    """
+    Class for writing json line into large datasets in to chunks and writing to s3.
+    This class writes to a string (rather than fileIO) and does smaller checks for a speedier
+    read write. Espeicially when writing multiple lines. However, if scaling to large amounts of data
+    it is probably better to use a json writer like jsonlines with the BytesSplitFileWriter.
+    The extension and the _write methods are defined in classes which extend this class
+    lines = [
+        '{"key": "value"}'
+    ]
+    with JsonNlSplitFileWriter("s3://test/", "test-file") as writer:
+        for line in lines:
+            writer.write_line(line)
+    """
+
+    def __init__(
+        self, s3_basepath, filename_prefix, max_bytes=1000000000, chunk_size=1000
+    ):
+        super(JsonNlSplitFileWriter, self).__init__(
+            s3_basepath=s3_basepath,
+            filename_prefix=filename_prefix,
+            max_bytes=max_bytes,
+            compress_on_upload=True,
+            file_extension="jsonl.gz",
+        )
+
+        self.chunk_size = chunk_size
+        self.total_lines = 0
+        self.num_lines = 0
+
+    def __enter__(self):
+        self.mem_file = self.get_new_mem_file()
+        self.num_lines = 0
+        self.num_files = 0
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+    def write_line(self, line):
+        """Writes line as string"""
+        self.mem_file += f"{line}\n"
+        self.num_lines += 1
+        self.total_lines += 1
+        if self.file_size_limit_reached():
+            self.write_to_s3()
+
+    def file_size_limit_reached(self):
+        if (
+            not self.num_lines % self.chunk_size
+            and sys.getsizeof(self.mem_file) > self.max_bytes
+        ):
+            return True
+        else:
+            return False
+
+    def write_lines(self, lines, line_transform=lambda x: x):
+        """
+        Writes multiple lines then checks if file limit hit.
+        So will be quicker but less accurate on breaking up files.
+        """
+        self.mem_file += "\n".join(line_transform(l) for l in lines) + "\n"
+        self.num_lines += len(lines)
+        self.total_lines += len(lines)
+        if self.file_size_limit_reached():
+            self.write_to_s3()
+
+    def reset_file_buffer(self):
+        self.num_files += 1
+        self.num_lines = 0
+        self.mem_file = self.get_new_mem_file()
+
+    def write_to_s3(self):
+        gzip_string_write_to_s3(self.mem_file, self.get_s3_filepath())
+        self.reset_file_buffer()
+
+    def close(self):
+        """Write all remaining lines to a final file"""
+        if self.num_lines:
+            self.write_to_s3()
