@@ -16,6 +16,7 @@ S3_BASEPATH = f"s3://{BUCKET_NAME}/"
 MAX_BYTES = 80000
 CHUNK_SIZE = 1000
 
+
 def test_large_select_queryset_with_writer(s3, large_select_queryset):
     """
     Test file writer and queryset with large result set.
@@ -47,27 +48,21 @@ def test_large_select_queryset_with_writer(s3, large_select_queryset):
     )
 
 
-
-
 def write_with_writer_and_qs(result_set):
-    select_queryset = SelectQuerySet(MockQs(result_set), "", 10000,)
+    select_queryset = SelectQuerySet(MockQs(result_set), "", 10000)
 
-    with JsonNlSplitFileWriter(
-        S3_BASEPATH, FILE_KEY, MAX_BYTES, CHUNK_SIZE
-    ) as writer:
+    with JsonNlSplitFileWriter(S3_BASEPATH, FILE_KEY, MAX_BYTES, CHUNK_SIZE) as writer:
         for results in select_queryset.iter_chunks():
             writer.write_lines(results)
 
 
 def write_with_write_to_file(result_set):
-    select_queryset = SelectQuerySet(MockQs(result_set), "", 10000,)
+    select_queryset = SelectQuerySet(MockQs(result_set), "", 10000)
 
     def transform_line(l):
         return l
 
-    with JsonNlSplitFileWriter(
-        S3_BASEPATH, FILE_KEY, MAX_BYTES, CHUNK_SIZE
-    ) as writer:
+    with JsonNlSplitFileWriter(S3_BASEPATH, FILE_KEY, MAX_BYTES, CHUNK_SIZE) as writer:
         select_queryset.write_to_file(writer, transform_line)
 
 

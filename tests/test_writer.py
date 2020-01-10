@@ -6,17 +6,22 @@ import csv
 from io import StringIO, BytesIO
 
 from dataengineeringutils3.s3 import gzip_string_write_to_s3
-from dataengineeringutils3.writer import BytesSplitFileWriter, StringSplitFileWriter, JsonNlSplitFileWriter
+from dataengineeringutils3.writer import (
+    BytesSplitFileWriter,
+    StringSplitFileWriter,
+    JsonNlSplitFileWriter,
+)
 from tests.helpers import time_func
 
 import jsonlines
+
 
 def test_json_split_file_writer(s3):
     """Test Writer splits files, gzips and sends to s3"""
     file_key = "test-key"
     bucket_name = "test"
     s3_basepath = f"s3://{bucket_name}/"
-    
+
     s3.meta.client.create_bucket(Bucket=bucket_name)
     bucket = s3.Bucket(bucket_name)
     with JsonNlSplitFileWriter(s3_basepath, file_key, 1024, 2) as writer:
@@ -26,7 +31,9 @@ def test_json_split_file_writer(s3):
     keys_in_bucket = [f"s3://{bucket_name}/{o.key}" for o in bucket.objects.all()]
     files_in_bucket = len(keys_in_bucket)
     assert files_in_bucket == 5
-    assert keys_in_bucket == [f"{s3_basepath}{file_key}-{i}.jsonl.gz" for i in range(files_in_bucket)]
+    assert keys_in_bucket == [
+        f"{s3_basepath}{file_key}-{i}.jsonl.gz" for i in range(files_in_bucket)
+    ]
 
 
 MAX_BYTES = 80000
@@ -71,6 +78,7 @@ def test_speed_of_writer(result_set, s3):
     qs_time = time_func(write_with_writer, result_set)
 
     assert qs_time < range_time
+
 
 @pytest.mark.parametrize(
     "folder,filename,compress", [("test-csv/", "test-file", False), ("", "a", True)]
