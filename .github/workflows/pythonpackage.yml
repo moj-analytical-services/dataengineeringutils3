@@ -41,6 +41,6 @@ jobs:
       run: |
         pip install pytest pytest-cov poetry boto3 moto coveralls
         poetry install
-        pytest --cov-report term-missing --cov=dataengineeringutils3 tests/
+        poetry run pytest --cov-report term-missing --cov=dataengineeringutils3 tests/
         export GIT_BRANCH=$(echo "${{ github.ref }}" | sed "s/refs\/heads\///")
         coveralls

@@ -10,20 +10,24 @@ from tests.helpers import time_func
 from tests.mocks import MockQs
 
 
+FILE_KEY = "test-key"
+BUCKET_NAME = "test"
+S3_BASEPATH = f"s3://{BUCKET_NAME}/"
+MAX_BYTES = 80000
+CHUNK_SIZE = 1000
+
+
 def test_large_select_queryset_with_writer(s3, large_select_queryset):
     """
     Test file writer and queryset with large result set.
     """
-    file_key = "test-key"
-    bucket_name = "test"
-    s3_path = f"s3://{bucket_name}/{file_key}"
-    s3.meta.client.create_bucket(Bucket=bucket_name)
-    bucket = s3.Bucket(bucket_name)
-    with JsonNlSplitFileWriter(s3_path, 1024, 10000) as writer:
+    s3.meta.client.create_bucket(Bucket=BUCKET_NAME)
+    bucket = s3.Bucket(BUCKET_NAME)
+    with JsonNlSplitFileWriter(S3_BASEPATH, FILE_KEY, 1024, 10000) as writer:
         for rows in large_select_queryset.iter_chunks():
             writer.write_lines(rows)
 
-    keys_in_bucket = [f"s3://{bucket_name}/{o.key}" for o in bucket.objects.all()]
+    keys_in_bucket = [f"s3://{BUCKET_NAME}/{o.key}" for o in bucket.objects.all()]
     files_in_bucket = len(keys_in_bucket)
     assert files_in_bucket == 10
 
@@ -44,16 +48,10 @@ def test_large_select_queryset_with_writer(s3, large_select_queryset):
     )
 
 
-MAX_BYTES = 80000
-CHUNK_SIZE = 1000
-
-
 def write_with_writer_and_qs(result_set):
     select_queryset = SelectQuerySet(MockQs(result_set), "", 10000)
 
-    with JsonNlSplitFileWriter(
-        "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE
-    ) as writer:
+    with JsonNlSplitFileWriter(S3_BASEPATH, FILE_KEY, MAX_BYTES, CHUNK_SIZE) as writer:
         for results in select_queryset.iter_chunks():
             writer.write_lines(results)
 
@@ -64,9 +62,7 @@ def write_with_write_to_file(result_set):
     def transform_line(l):
         return l
 
-    with JsonNlSplitFileWriter(
-        "s3://test/test-file.josnl.gz", MAX_BYTES, CHUNK_SIZE
-    ) as writer:
+    with JsonNlSplitFileWriter(S3_BASEPATH, FILE_KEY, MAX_BYTES, CHUNK_SIZE) as writer:
         select_queryset.write_to_file(writer, transform_line)
 
 
