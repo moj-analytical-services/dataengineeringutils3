@@ -15,8 +15,15 @@ from tests.helpers import time_func
 
 import jsonlines
 
-
-def test_json_split_file_writer(s3):
+@pytest.mark.parametrize(
+    "max_bytes,chunk_size,expected_num",
+    [
+        (1024, None, 5),
+        (100000000000, 50, 3),
+        (100000000000, None, 1),
+    ],
+)
+def test_json_split_file_writer(s3, max_bytes, chunk_size, expected_num):
     """Test Writer splits files, gzips and sends to s3"""
     file_key = "test-key"
     bucket_name = "test"
@@ -24,13 +31,16 @@ def test_json_split_file_writer(s3):
 
     s3.meta.client.create_bucket(Bucket=bucket_name)
     bucket = s3.Bucket(bucket_name)
-    with JsonNlSplitFileWriter(s3_basepath, file_key, 1024, 2) as writer:
+    with JsonNlSplitFileWriter(s3_basepath, file_key, max_bytes, chunk_size) as writer:
         for i in range(150):
             writer.write_line(f"{i}. This test line number {i + 1}")
+
     assert writer.total_lines == 150
     keys_in_bucket = [f"s3://{bucket_name}/{o.key}" for o in bucket.objects.all()]
     files_in_bucket = len(keys_in_bucket)
-    assert files_in_bucket == 5
+    assert files_in_bucket == expected_num
+    assert files_in_bucket == writer.num_files
+
     assert keys_in_bucket == [
         f"{s3_basepath}{file_key}-{i}.jsonl.gz" for i in range(files_in_bucket)
     ]

@@ -257,13 +257,13 @@ class JsonNlSplitFileWriter(BaseSplitFileWriter):
             self.write_to_s3()
 
     def file_size_limit_reached(self):
-        if (
-            not self.num_lines % self.chunk_size
-            and sys.getsizeof(self.mem_file) > self.max_bytes
-        ):
-            return True
+
+        limit_met = sys.getsizeof(self.mem_file) > self.max_bytes
+        
+        if (not limit_met and self.chunk_size):
+            return self.num_lines >= self.chunk_size
         else:
-            return False
+            return limit_met
 
     def write_lines(self, lines, line_transform=lambda x: x):
         """
