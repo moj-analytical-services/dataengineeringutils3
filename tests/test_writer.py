@@ -15,13 +15,10 @@ from tests.helpers import time_func
 
 import jsonlines
 
+
 @pytest.mark.parametrize(
     "max_bytes,chunk_size,expected_num",
-    [
-        (1024, None, 5),
-        (100000000000, 50, 3),
-        (100000000000, None, 1),
-    ],
+    [(1024, None, 5), (100000000000, 50, 3), (100000000000, None, 1)],
 )
 def test_json_split_file_writer(s3, max_bytes, chunk_size, expected_num):
     """Test Writer splits files, gzips and sends to s3"""

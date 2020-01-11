@@ -259,8 +259,8 @@ class JsonNlSplitFileWriter(BaseSplitFileWriter):
     def file_size_limit_reached(self):
 
         limit_met = sys.getsizeof(self.mem_file) > self.max_bytes
-        
-        if (not limit_met and self.chunk_size):
+
+        if not limit_met and self.chunk_size:
             return self.num_lines >= self.chunk_size
         else:
             return limit_met
