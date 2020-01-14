@@ -26,6 +26,7 @@ class BaseSplitFileWriter:
     the file_extension parameter.
     :param file_extension: String representing the file extension. Should not be prefixed with a '.'.
     """
+
     def __init__(
         self,
         s3_basepath,
