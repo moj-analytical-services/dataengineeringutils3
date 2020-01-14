@@ -11,7 +11,7 @@ from io import BytesIO, StringIO
 class BaseSplitFileWriter:
     """
     Base class for splitting large datasets in to chunks and writing to s3.
-    This is acts as a file like object. Data is written to an in memory file
+    This is acts as a "file like object". Data is written to an in memory file
     (note this file is defined in subclasses and not set in this base class).
     until it hits a max_bytes limit at which point the data is written to S3
     as single file. The in memory file is defined by the sub classes 
@@ -25,27 +25,7 @@ class BaseSplitFileWriter:
     :param compress_on_upload: If the file should be compressed before writing to S3 (default True). Note does not affect 
     the file_extension parameter.
     :param file_extension: String representing the file extension. Should not be prefixed with a '.'.
-
-    :Example:
-
-    from dataengineeringutils3.writer import BytesSplitFileWriter
-    from jsonlines import Writer
-
-    test_dict = {"foo": "bar"}
-    
-    bsfw = BytesSplitFileWriter("s3://test/folder/", "test-file", max_bytes=30, compress_on_upload=False, file_extension="jsonl")
-
-    # Same functionality passing 
-    json_writer = Writer(bsfw)
-    for i in range(0, 10):
-        json_writer.write(test_dict)
-    
-    json_writer.close()
-
-    # Closing the objects sends off the remaining data in the io buffer
-    bsfw.close()
     """
-
     def __init__(
         self,
         s3_basepath,
@@ -130,8 +110,10 @@ class BytesSplitFileWriter(BaseSplitFileWriter):
     """
     BytesIO file like object for splitting large datasets in to chunks and
     writing to s3. Data is written to a BytesIO file buffer until it hits a
-    max_bytes limit at which point the data is written to S3
-    as single file.
+    max_bytes limit at which point the data is written to S3 as a
+    as single file. Then data continues to be written to a new BytesIO buffer until that
+    hits the size limit which results in a new single file being written to S3. Each S3
+    file is suffixed with an integer (first file is suffixed with 0, the next 1, etc)
 
     :param s3_basepath: The base path to the s3 location you want to write to S3://...
     :param filename_prefix: The filename that you want to keep constant. Every written file is prefixed with this string.
@@ -141,23 +123,56 @@ class BytesSplitFileWriter(BaseSplitFileWriter):
     the file_extension parameter.
     :param file_extension: String representing the file extension. Should not be prefixed with a '.'.
 
-    :Example:
+   :Example:
+
+    # Example 1 - Uploads bytes text to S3
+    # The following example would write the two text strings
+    # to two files:
+    # s3://test/folder/test-file-0.txt and s3://test/folder/test-file-1.txt
+    # as each write exceeds the max_bytes limit
+
+    from dataengineeringutils3.writer import BytesSplitFileWriter
+
+    with BytesSplitFileWriter("s3://test/folder/",
+        "test-file",
+        max_bytes=50,
+        compress_on_upload=False,
+        file_extension="txt"
+    ) as f:
+        f.write(b"This is some text")
+        f.write(b"This is some other text")
+    
+    
+    # Example 2 - Using it with a writing package
+    # The following example uses jsonlines to write the data to a BytesSplitFileWriter
+    # when data written to the in memory buffer exceeds BytesSplitFileWriter then the data
+    # in the buffer is written to S3. With the first file being "s3://test/folder/test-file-0.jsonl.gz"
+    # and the next "s3://test/folder/test-file-1.jsonl.gz", etc.
 
     from dataengineeringutils3.writer import BytesSplitFileWriter
     from jsonlines import Writer
 
-    test_dict = {"foo": "bar"}
+    test_data = [
+        {"col1": 0, "col2": "x"},
+        {"col1": 1, "col2": "y"},
+        {"col1": 2, "col2": "z"}
+    ]
     
-    bsfw = BytesSplitFileWriter("s3://test/folder/", "test-file", max_bytes=30, compress_on_upload=False, file_extension="jsonl")
+    bsfw = BytesSplitFileWriter("s3://test/folder/",
+        "test-file",
+        max_bytes=30,
+        compress_on_upload=True,
+        file_extension="jsonl.gz"
+    )
 
-    # Same functionality passing 
+    # Same functionality as passing BytesIO() file into the jsonlines.Writer
     json_writer = Writer(bsfw)
-    for i in range(0, 10):
-        json_writer.write(test_dict)
-    
+    json_writer.write_all(test_data)
     json_writer.close()
 
-    # Closing the objects sends off the remaining data in the io buffer
+    # Closing the objects sends off the remaining data in the io buffer.
+    # closing is required in this example as jsonlines.Writer doesn't close
+    # the bytesFile as it was opened before being passed to the Writer
     bsfw.close()
     """
 
@@ -169,8 +184,11 @@ class StringSplitFileWriter(BaseSplitFileWriter):
     """
     StringIO file like object for splitting large datasets in to chunks and
     writing to s3. Data is written to a StringIO file buffer until it hits a
-    max_bytes limit at which point the data is written to S3
-    as single file.
+    max_bytes limit at which point the data is written to S3 as a
+    as single file. Then data continues to be written to a new StringIO buffer until that
+    hits the size limit which results in a new single file being written to S3. Each S3
+    file is suffixed with an integer (first file is suffixed with 0, the next 1, etc)
+
     :param s3_basepath: The base path to the s3 location you want to write to S3://...
     :param filename_prefix: The filename that you want to keep constant. Every written file is prefixed with this string.
     S3 objects written will end in the file number and the extension.
@@ -179,23 +197,56 @@ class StringSplitFileWriter(BaseSplitFileWriter):
     the file_extension parameter.
     :param file_extension: String representing the file extension. Should not be prefixed with a '.'.
 
-    :Example:
+   :Example:
+
+    # Example 1 - Uploads bytes text to S3
+    # The following example would write the two text strings
+    # to two files:
+    # s3://test/folder/test-file-0.txt and s3://test/folder/test-file-1.txt
+    # as each write exceeds the max_bytes limit
+
+    from dataengineeringutils3.writer import StringSplitFileWriter
+
+    with StringSplitFileWriter("s3://test/folder/",
+        "test-file",
+        max_bytes=50,
+        compress_on_upload=False,
+        file_extension="txt"
+    ) as f:
+        f.write("This is some text")
+        f.write("This is some other text")
+    
+    
+    # Example 2 - Using it with a writing package
+    # The following example uses jsonlines to write the data to a BytesSplitFileWriter
+    # when data written to the in memory buffer exceeds BytesSplitFileWriter then the data
+    # in the buffer is written to S3. With the first file being "s3://test/folder/test-file-0.jsonl.gz"
+    # and the next "s3://test/folder/test-file-1.jsonl.gz", etc.
 
     from dataengineeringutils3.writer import StringSplitFileWriter
     from jsonlines import Writer
 
-    test_dict = {"foo": "bar"}
+    test_data = [
+        {"col1": 0, "col2": "x"},
+        {"col1": 1, "col2": "y"},
+        {"col1": 2, "col2": "z"}
+    ]
     
-    ssfw = StringSplitFileWriter("s3://test/folder/", "test-file", max_bytes=30, compress_on_upload=False, file_extension="jsonl")
+    ssfw = StringSplitFileWriter("s3://test/folder/",
+        "test-file",
+        max_bytes=30,
+        compress_on_upload=True,
+        file_extension="jsonl.gz"
+    )
 
-    # Same functionality passing 
+    # Same functionality as passing BytesIO() file into the jsonlines.Writer
     json_writer = Writer(ssfw)
-    for i in range(0, 10):
-        json_writer.write(test_dict)
-    
+    json_writer.write_all(test_data)
     json_writer.close()
 
-    # Closing the objects sends off the remaining data in the io buffer
+    # Closing the objects sends off the remaining data in the io buffer.
+    # closing is required in this example as jsonlines.Writer doesn't close
+    # the bytesFile as it was opened before being passed to the Writer
     ssfw.close()
     """
 
