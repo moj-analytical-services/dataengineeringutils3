@@ -22,7 +22,7 @@ def test_select_queryset(select_queryset):
         == ['{"uuid": "fkjherpiutrgponfevpoir3qjgp8prueqhf9pq34hf89hwfpu92q"}'] * 15
     )
     select_queryset.cursor.fetchmany.assert_has_calls(
-        [call(2), call(2), call(2), call(2), call(2), call(2), call(2), call(2),]
+        [call(2), call(2), call(2), call(2), call(2), call(2), call(2), call(2)]
     )
 
 
@@ -32,7 +32,7 @@ def gen(result_set):
 
 
 def loop_through_qs(result_set):
-    select_queryset = SelectQuerySet(MockQs(result_set), "", 1000000,)
+    select_queryset = SelectQuerySet(MockQs(result_set), "", 1000000)
     results = []
     [results.append(l) for rows in select_queryset.iter_chunks() for l in rows]
     return results
