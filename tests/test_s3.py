@@ -252,6 +252,7 @@ def test_check_for_s3_file(s3):
 
 
 def test_upload_local_file(s3, tmp_path):
+
     path = os.path.join(tmp_path, "abctestfile.json")
     test_file = open(path, "w")
     test_file.write("some test contents")
