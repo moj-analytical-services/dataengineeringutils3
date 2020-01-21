@@ -206,7 +206,7 @@ def write_local_file_to_s3(local_file_path, s3_path, overwrite=False):
     s3_resource = boto3.resource("s3")
 
     if check_for_s3_file(s3_path) and overwrite == False:
-        raise ValueError("File already exists.  Pass overwrite = True if you want to overwrite")
+        raise ValueError("File already exists.  Pass overwrite = True to overwrite")
     else:
         resp = s3_resource.meta.client.upload_file(local_file_path, bucket, key)
 
