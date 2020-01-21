@@ -193,7 +193,7 @@ def check_for_s3_file(s3_path):
         return True
 
 
-def write_local_file_to_s3(local_file_path, s3_path, *args, **kwargs):
+def write_local_file_to_s3(local_file_path, s3_path, overwrite=False):
     """
     Checks if a file exists in the S3 path provided.
     :param local_file_path: "myfolder/myfile.json"
@@ -205,6 +205,9 @@ def write_local_file_to_s3(local_file_path, s3_path, *args, **kwargs):
     bucket, key = s3_path_to_bucket_key(s3_path)
     s3_resource = boto3.resource("s3")
 
-    resp = s3_resource.meta.client.upload_file(local_file_path, bucket, key)
+    if check_for_s3_file(s3_path) and overwrite == False:
+        raise ValueError("File already exists.  Pass overwrite = True if you want to overwrite")
+    else:
+        resp = s3_resource.meta.client.upload_file(local_file_path, bucket, key)
 
     return resp

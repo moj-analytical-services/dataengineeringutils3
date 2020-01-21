@@ -261,3 +261,9 @@ def test_upload_local_file(s3, tmp_path):
 
     write_local_file_to_s3(path, "s3://test/abctestfile.json")
     assert check_for_s3_file(f"s3://test/abctestfile.json")
+
+    with pytest.raises(ValueError):
+        write_local_file_to_s3(path, "s3://test/abctestfile.json")
+
+    write_local_file_to_s3(path, "s3://test/abctestfile.json", overwrite=True)
+
