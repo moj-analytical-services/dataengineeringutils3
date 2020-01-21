@@ -1,5 +1,6 @@
 import gzip
 import io
+import os
 import pytest
 import json
 
@@ -14,6 +15,7 @@ from dataengineeringutils3.s3 import (
     delete_s3_folder_contents,
     copy_s3_object,
     check_for_s3_file,
+    write_local_file_to_s3
 )
 
 
@@ -247,3 +249,15 @@ def test_check_for_s3_file(s3):
     assert check_for_s3_file(f"s3://{bucket_name}/f1/otherfile.json")
 
     assert not check_for_s3_file(f"s3://{bucket_name}/f1/no_file.json")
+
+def test_upload_local_file(s3, tmp_path):
+    path = os.path.join(tmp_path, "abctestfile.json")
+    test_file = open(path, "w")
+    test_file.write("some test contents")
+    test_file.close()
+
+    bucket_name = "test"
+    s3.meta.client.create_bucket(Bucket=bucket_name)
+
+    write_local_file_to_s3(path, "s3://test/abctestfile.json")
+    assert check_for_s3_file(f"s3://test/abctestfile.json")

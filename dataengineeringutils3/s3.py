@@ -191,3 +191,20 @@ def check_for_s3_file(s3_path):
     else:
         # The object does exist.
         return True
+
+
+def write_local_file_to_s3(local_file_path, s3_path, *args, **kwargs):
+    """
+    Checks if a file exists in the S3 path provided.
+    :param local_file_path: "myfolder/myfile.json"
+    :param s3_path: "s3://path/to/myfile.json"
+
+    :returns: s3_resource response
+    """
+
+    bucket, key = s3_path_to_bucket_key(s3_path)
+    s3_resource = boto3.resource("s3")
+
+    resp = s3_resource.meta.client.upload_file(local_file_path, bucket, key)
+
+    return resp
