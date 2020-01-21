@@ -268,4 +268,3 @@ def test_upload_local_file(s3, tmp_path):
         write_local_file_to_s3(path, "s3://test/abctestfile.json")
 
     write_local_file_to_s3(path, "s3://test/abctestfile.json", overwrite=True)
-
