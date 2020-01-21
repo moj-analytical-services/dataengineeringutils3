@@ -15,7 +15,7 @@ from dataengineeringutils3.s3 import (
     delete_s3_folder_contents,
     copy_s3_object,
     check_for_s3_file,
-    write_local_file_to_s3
+    write_local_file_to_s3,
 )
 
 
@@ -249,6 +249,7 @@ def test_check_for_s3_file(s3):
     assert check_for_s3_file(f"s3://{bucket_name}/f1/otherfile.json")
 
     assert not check_for_s3_file(f"s3://{bucket_name}/f1/no_file.json")
+
 
 def test_upload_local_file(s3, tmp_path):
     path = os.path.join(tmp_path, "abctestfile.json")
