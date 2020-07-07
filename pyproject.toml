@@ -1,6 +1,7 @@
 [tool.poetry]
 name = "dataengineeringutils3"
 version = "1.1.0"
+description = "Data engineering utils Python 3 version"
 authors = ["Data Engineering <dataengineering@digital.justice.gov.uk>"]
 license = "MIT"
 exclude = ["tests*"]
