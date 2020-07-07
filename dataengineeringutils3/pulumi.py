@@ -22,7 +22,7 @@ def check_business_unit(business_unit: str):
         "Platforms",
     ]:
         raise ValueError(
-            "business_unit must be one of HQ, HMPPS, OPG, LAA, HMCTS, CICA, or"
+            "business_unit must be one of HQ, HMPPS, OPG, LAA, HMCTS, CICA, or "
             "Platforms"
         )
 
@@ -77,12 +77,14 @@ class Tagger:
         Parameters
         ----------
         resource_name : str
-            The name of the resource for which the tags will be created.
+            The name of the resource for which the tags will be created. This should be
+            the same as the resource_name of the Pulumi resource to which you are
+            adding the tags.
 
         Returns
         -------
         dict
-            A dictionary of mandatory and custom tags that can be passed to he tags
+            A dictionary of mandatory and custom tags that can be passed to the tags
             argument of a Pulumi resource.
         """
         init_tags = self._global_tags
