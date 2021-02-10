@@ -17,12 +17,29 @@ class SelectQuerySet:
         1000,
     )
 
+    # Write out json string
     with JsonNlSplitFileWriter("s3://test/test-file.jsonl.gz") as writer:
         column_names = select_queryset.headers
         for row in select_queryset:
             json_line_str = json.dumps(dict(zip(column_names, row)), cls=DateTimeEncoder)
             writer.write_line(json_line_str)
+
+    # Use a function to convert row to json
+    with JsonNlSplitFileWriter("s3://test/test-file.jsonl.gz") as writer:
+        column_names = select_queryset.headers
+        def transform_line(row):
+            return json.dumps(dict(zip(column_names, row)), cls=DateTimeEncoder)
+        select_queryset.write_to_file(writer, transform_line)
+
+    # Use a function to convert row to json but write multiple lines at once
+    with JsonNlSplitFileWriter("s3://test/test-file.jsonl.gz") as writer:
+        column_names = select_queryset.headers
+        def transform_line(row):
+            return json.dumps(dict(zip(column_names, row)), cls=DateTimeEncoder)
+        for results in select_queryset.iter_chunks():
+            writer.write_lines(results, transform_line)
     """
+
     def __init__(self, cursor, select_query, fetch_size=1000, **query_kwargs):
         """
         Sets the curser, query and executes
@@ -33,41 +50,30 @@ class SelectQuerySet:
         """
         self.query = select_query
         self.cursor = cursor
+        self.cursor.arraysize = fetch_size
         self.fetch_size = fetch_size
-        self._result_cache = None
         self.cursor.execute(select_query, **query_kwargs)
 
     def __iter__(self):
         """Reset iterator and n to 0"""
-        self.n = 0
-        return self
+        for r in self.cursor:
+            yield r
 
-    def __next__(self):
-        """
-        Get next row. If the _result_cache is at the end then fetch more. If there are
-        no more results the StopIteration.
-        """
-        if self._result_cache is not None:
-            try:
-                val = next(self._result_cache)
-                self.n += 1
-                return val
-            except StopIteration:
-                pass
-        self._update_result_cache()
-        val = next(self._result_cache)
-        self.n += 1
-        return val
-
-    def _update_result_cache(self):
+    def iter_chunks(self):
         results = self.cursor.fetchmany(self.fetch_size)
-        if len(results) == 0:
-            raise StopIteration()
-        self._result_cache = iter(results)
+        while results:
+            yield results
+            try:
+                results = self.cursor.fetchmany(self.fetch_size)
+            except Exception:
+                results = None
+                break
 
     @property
     def headers(self):
         """Return column names"""
-        if self._result_cache is None:
-            self._update_result_cache()
         return [c[0] for c in self.cursor.description]
+
+    def write_to_file(self, file_writer, line_transform=lambda x: x):
+        for results in self.iter_chunks():
+            file_writer.write_lines(results, line_transform)

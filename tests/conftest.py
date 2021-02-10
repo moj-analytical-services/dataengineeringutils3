@@ -32,8 +32,16 @@ def sts(aws_credentials):
 
 @pytest.fixture
 def select_queryset():
+    return SelectQuerySet(mock_object(MockCursor, 15, [("Head 1",)]), "query", 2)
+
+
+@pytest.fixture
+def large_select_queryset():
     return SelectQuerySet(
-        mock_object(MockCursor, range(15), [("Head 1", )]),
-        "query",
-        2,
+        mock_object(MockCursor, 100000, [("Head 1",)]), "query", 10000
     )
+
+
+@pytest.fixture
+def result_set():
+    return ['{"uuid": "fkjherpiutrgponfevpoir3qjgp8prueqhf9pq34hf89hwfpu92q"}'] * 100000
