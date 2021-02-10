@@ -126,7 +126,7 @@ def copy_s3_folder_contents_to_new_folder(
     to_s3_folder_path = _add_slash(to_s3_folder_path)
 
     all_from_filepaths = get_filepaths_from_s3_folder(
-        from_s3_folder_path, exclude_zero_byte_files=False
+        from_s3_folder_path, exclude_zero_byte_files=exclude_zero_byte_files
     )
     for afp in all_from_filepaths:
         tfp = afp.replace(from_s3_folder_path, to_s3_folder_path)
