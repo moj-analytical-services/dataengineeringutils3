@@ -17,21 +17,25 @@ class SelectQuerySet:
         1000,
     )
 
+    # Write out json string
     with JsonNlSplitFileWriter("s3://test/test-file.jsonl.gz") as writer:
         column_names = select_queryset.headers
         for row in select_queryset:
-            writer.write_line(json.dumps(zip(column_names, row), cls=DateTimeEncoder))
+            json_line_str = json.dumps(dict(zip(column_names, row)), cls=DateTimeEncoder)
+            writer.write_line(json_line_str)
 
+    # Use a function to convert row to json
     with JsonNlSplitFileWriter("s3://test/test-file.jsonl.gz") as writer:
         column_names = select_queryset.headers
         def transform_line(row):
-            return json.dumps(zip(column_names, row), cls=DateTimeEncoder)
+            return json.dumps(dict(zip(column_names, row)), cls=DateTimeEncoder)
         select_queryset.write_to_file(writer, transform_line)
 
+    # Use a function to convert row to json but write multiple lines at once
     with JsonNlSplitFileWriter("s3://test/test-file.jsonl.gz") as writer:
         column_names = select_queryset.headers
         def transform_line(row):
-            return json.dumps(zip(column_names, row), cls=DateTimeEncoder)
+            return json.dumps(dict(zip(column_names, row)), cls=DateTimeEncoder)
         for results in select_queryset.iter_chunks():
             writer.write_lines(results, transform_line)
     """
