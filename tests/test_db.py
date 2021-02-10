@@ -45,14 +45,3 @@ def loop_through_list(result_set):
             results.append(l)
         break
     return results
-
-
-def test_speed_of_iterator(result_set):
-    """
-    Test that generator is not much slower than a flat list
-    """
-    range_time = time_func(loop_through_list, result_set)
-
-    qs_time = time_func(loop_through_qs, result_set)
-
-    assert qs_time * 0.8 < range_time

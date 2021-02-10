@@ -26,7 +26,10 @@ def test_json_split_file_writer(s3, max_bytes, chunk_size, expected_num):
     bucket_name = "test"
     s3_basepath = f"s3://{bucket_name}/"
 
-    s3.meta.client.create_bucket(Bucket=bucket_name)
+    s3.meta.client.create_bucket(
+        Bucket=bucket_name,
+        CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
+    )
     bucket = s3.Bucket(bucket_name)
     with JsonNlSplitFileWriter(s3_basepath, file_key, max_bytes, chunk_size) as writer:
         for i in range(150):
@@ -78,7 +81,9 @@ def test_speed_of_writer(result_set, s3):
     """
     Test that generator is not much slower than a flat list
     """
-    s3.meta.client.create_bucket(Bucket="test")
+    s3.meta.client.create_bucket(
+        Bucket="test", CreateBucketConfiguration={"LocationConstraint": "eu-west-1"}
+    )
 
     range_time = time_func(write_manually, result_set)
 
@@ -93,7 +98,10 @@ def test_speed_of_writer(result_set, s3):
 def test_with_csv_string_split_file_writer(s3, folder, filename, compress):
     """Test string writer with statement csv"""
     bucket_name = "test"
-    s3.meta.client.create_bucket(Bucket=bucket_name)
+    s3.meta.client.create_bucket(
+        Bucket=bucket_name,
+        CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
+    )
 
     csv_data = [
         ("i", "x1", "x2"),
@@ -152,7 +160,10 @@ def test_with_csv_string_split_file_writer(s3, folder, filename, compress):
 def test_csv_string_split_file_writer(s3, folder, filename, compress):
     """Test string writer csv"""
     bucket_name = "test"
-    s3.meta.client.create_bucket(Bucket=bucket_name)
+    s3.meta.client.create_bucket(
+        Bucket=bucket_name,
+        CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
+    )
 
     csv_data = [
         ("i", "x1", "x2"),
@@ -220,7 +231,10 @@ def test_split_file_writer_with_json(s3, folder, filename, compress, filewriter_
     bucket_name = "test"
     ext = "jsonl.gz" if compress else "jsonl"
 
-    s3.meta.client.create_bucket(Bucket=bucket_name)
+    s3.meta.client.create_bucket(
+        Bucket=bucket_name,
+        CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
+    )
 
     jsonl_data = [
         {"i": 1, "x1": "a", "x2": "b"},

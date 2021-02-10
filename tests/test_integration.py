@@ -21,7 +21,10 @@ def test_large_select_queryset_with_writer(s3, large_select_queryset):
     """
     Test file writer and queryset with large result set.
     """
-    s3.meta.client.create_bucket(Bucket=BUCKET_NAME)
+    s3.meta.client.create_bucket(
+        Bucket=BUCKET_NAME,
+        CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
+    )
     bucket = s3.Bucket(BUCKET_NAME)
     with JsonNlSplitFileWriter(S3_BASEPATH, FILE_KEY, 1024, 10000) as writer:
         for rows in large_select_queryset.iter_chunks():
@@ -94,7 +97,9 @@ def test_speed_of_writer_and_iterator(result_set, s3):
     """
     Test that generator is not much slower than a flat list
     """
-    s3.meta.client.create_bucket(Bucket="test")
+    s3.meta.client.create_bucket(
+        Bucket="test", CreateBucketConfiguration={"LocationConstraint": "eu-west-1"}
+    )
 
     range_time = time_func(write_manually, result_set)
 
@@ -107,7 +112,9 @@ def test_speed_of_write_to_file(result_set, s3):
     """
     Test that generator is not much slower than a flat list
     """
-    s3.meta.client.create_bucket(Bucket="test")
+    s3.meta.client.create_bucket(
+        Bucket="test", CreateBucketConfiguration={"LocationConstraint": "eu-west-1"}
+    )
 
     range_time = time_func(write_manually, result_set)
 
