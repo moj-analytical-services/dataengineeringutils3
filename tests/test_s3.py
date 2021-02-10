@@ -181,7 +181,6 @@ def test_copy_s3_folder_contents_to_new_folder(source, dest, exclude, s3):
         to_s3_folder_path=dest,
         exclude_zero_byte_files=exclude,
     )
-    dest_removed_bucket = dest.replace("s3://dest/", "")
     actual = ["s3://dest/" + o.key for o in s3.Bucket("dest").objects.all()]
     assert sorted(actual) == sorted(expected)
 
@@ -305,7 +304,7 @@ def test_upload_local_file(s3, tmp_path):
     )
 
     write_local_file_to_s3(path, "s3://test/abctestfile.json")
-    assert check_for_s3_file(f"s3://test/abctestfile.json")
+    assert check_for_s3_file("s3://test/abctestfile.json")
 
     with pytest.raises(ValueError):
         write_local_file_to_s3(path, "s3://test/abctestfile.json")

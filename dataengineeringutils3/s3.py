@@ -28,7 +28,8 @@ def s3_path_to_bucket_key(s3_path):
 
 def bucket_key_to_s3_path(bucket, key):
     """
-    Takes an S3 bucket and key combination and returns the full S3 path to that location.
+    Takes an S3 bucket and key combination and returns the
+    full S3 path to that location.
     """
     return f"s3://{bucket}/{key}"
 
@@ -44,7 +45,9 @@ def get_filepaths_from_s3_folder(
     s3_folder_path, file_extension=None, exclude_zero_byte_files=True
 ):
     """
-    Get a list of filepaths from a bucket. If extension is set to a string then only return files with that extension otherwise if set to None (default) all filepaths are returned.
+    Get a list of filepaths from a bucket. If extension is set to a string
+    then only return files with that extension otherwise if set to None (default)
+    all filepaths are returned.
     :param s3_folder_path: "s3://...."
     :param extension: file extension, e.g. .json
     :param exclude_zero_byte_files: Whether to filter out results of zero size: True
@@ -116,7 +119,8 @@ def copy_s3_folder_contents_to_new_folder(
     from_s3_folder_path, to_s3_folder_path, exclude_zero_byte_files=False
 ):
     """
-    Copies complete folder structure within from_s3_folder_path to the to_s3_folder_path.
+    Copies complete folder structure within from_s3_folder_path
+    to the to_s3_folder_path.
     Note any s3 objects in the destination folder will be overwritten if it matches the
     object name being written.
     :param from_s3_folder_path: Folder path that you want to copy "s3://...."
@@ -205,7 +209,7 @@ def write_local_file_to_s3(local_file_path, s3_path, overwrite=False):
     bucket, key = s3_path_to_bucket_key(s3_path)
     s3_resource = boto3.resource("s3")
 
-    if check_for_s3_file(s3_path) and overwrite == False:
+    if check_for_s3_file(s3_path) and overwrite is False:
         raise ValueError("File already exists.  Pass overwrite = True to overwrite")
     else:
         resp = s3_resource.meta.client.upload_file(local_file_path, bucket, key)

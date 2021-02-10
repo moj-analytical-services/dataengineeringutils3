@@ -14,17 +14,20 @@ class BaseSplitFileWriter:
     This is acts as a "file like object". Data is written to an in memory file
     (note this file is defined in subclasses and not set in this base class).
     until it hits a max_bytes limit at which point the data is written to S3
-    as single file. The in memory file is defined by the sub classes 
+    as single file. The in memory file is defined by the sub classes
     BytesSlitFileWriter and StringSplitFileWriter. These subclasses attempt
-    to mimic the expected response of BytesIO and StringIO. 
+    to mimic the expected response of BytesIO and StringIO.
 
     :param s3_basepath: The base path to the s3 location you want to write to S3://...
-    :param filename_prefix: The filename that you want to keep constant. Every written file is prefixed with this string.
+    :param filename_prefix: The filename that you want to keep constant. Every written
+    file is prefixed with this string.
     S3 objects written will end in the file number and the extension.
-    :param max_bytes: The maximum number of bytes for each file (uncompressed file size) default set at 1GB.
-    :param compress_on_upload: If the file should be compressed before writing to S3 (default True). Note does not affect 
-    the file_extension parameter.
-    :param file_extension: String representing the file extension. Should not be prefixed with a '.'.
+    :param max_bytes: The maximum number of bytes for each file (uncompressed file size)
+        default set at 1GB.
+    :param compress_on_upload: If the file should be compressed before writing to S3
+        (default True). Note does not affect the file_extension parameter.
+    :param file_extension: String representing the file extension.
+        Should not be prefixed with a '.'.
     """
 
     def __init__(
@@ -117,12 +120,15 @@ class BytesSplitFileWriter(BaseSplitFileWriter):
     file is suffixed with an integer (first file is suffixed with 0, the next 1, etc)
 
     :param s3_basepath: The base path to the s3 location you want to write to S3://...
-    :param filename_prefix: The filename that you want to keep constant. Every written file is prefixed with this string.
+    :param filename_prefix: The filename that you want to keep constant. Every written
+        file is prefixed with this string.
     S3 objects written will end in the file number and the extension.
-    :param max_bytes: The maximum number of bytes for each file (uncompressed file size) default set at 1GB.
-    :param compress_on_upload: If the file should be compressed before writing to S3 (default True). Note does not affect 
-    the file_extension parameter.
-    :param file_extension: String representing the file extension. Should not be prefixed with a '.'.
+    :param max_bytes: The maximum number of bytes for each file (uncompressed file size)
+        default set at 1GB.
+    :param compress_on_upload: If the file should be compressed before writing to S3
+        (default True). Note does not affect the file_extension parameter.
+    :param file_extension: String representing the file extension.
+        Should not be prefixed with a '.'.
 
    :Example:
 
@@ -142,12 +148,13 @@ class BytesSplitFileWriter(BaseSplitFileWriter):
     ) as f:
         f.write(b"This is some text")
         f.write(b"This is some other text")
-    
-    
+
+
     # Example 2 - Using it with a writing package
     # The following example uses jsonlines to write the data to a BytesSplitFileWriter
-    # when data written to the in memory buffer exceeds BytesSplitFileWriter then the data
-    # in the buffer is written to S3. With the first file being "s3://test/folder/test-file-0.jsonl.gz"
+    # when data written to the in memory buffer exceeds BytesSplitFileWriter then the
+    # data in the buffer is written to S3. With the first file being
+    # "s3://test/folder/test-file-0.jsonl.gz"
     # and the next "s3://test/folder/test-file-1.jsonl.gz", etc.
 
     from dataengineeringutils3.writer import BytesSplitFileWriter
@@ -158,7 +165,7 @@ class BytesSplitFileWriter(BaseSplitFileWriter):
         {"col1": 1, "col2": "y"},
         {"col1": 2, "col2": "z"}
     ]
-    
+
     bsfw = BytesSplitFileWriter("s3://test/folder/",
         "test-file",
         max_bytes=30,
@@ -186,17 +193,21 @@ class StringSplitFileWriter(BaseSplitFileWriter):
     StringIO file like object for splitting large datasets in to chunks and
     writing to s3. Data is written to a StringIO file buffer until it hits a
     max_bytes limit at which point the data is written to S3 as a
-    as single file. Then data continues to be written to a new StringIO buffer until that
-    hits the size limit which results in a new single file being written to S3. Each S3
-    file is suffixed with an integer (first file is suffixed with 0, the next 1, etc)
+    as single file. Then data continues to be written to a new StringIO buffer
+    until that hits the size limit which results in a new single file being
+    written to S3. Each S3 file is suffixed with an integer (first file is
+    suffixed with 0, the next 1, etc)
 
     :param s3_basepath: The base path to the s3 location you want to write to S3://...
-    :param filename_prefix: The filename that you want to keep constant. Every written file is prefixed with this string.
+    :param filename_prefix: The filename that you want to keep constant. Every written
+        file is prefixed with this string.
     S3 objects written will end in the file number and the extension.
-    :param max_bytes: The maximum number of bytes for each file (uncompressed file size) default set at 1GB.
-    :param compress_on_upload: If the file should be compressed before writing to S3 (default True). Note does not affect 
-    the file_extension parameter.
-    :param file_extension: String representing the file extension. Should not be prefixed with a '.'.
+    :param max_bytes: The maximum number of bytes for each file (uncompressed file size)
+        default set at 1GB.
+    :param compress_on_upload: If the file should be compressed before writing to S3
+        (default True). Note does not affect the file_extension parameter.
+    :param file_extension: String representing the file extension. Should not be
+        prefixed with a '.'.
 
    :Example:
 
@@ -216,12 +227,15 @@ class StringSplitFileWriter(BaseSplitFileWriter):
     ) as f:
         f.write("This is some text")
         f.write("This is some other text")
-    
-    
+
+
     # Example 2 - Using it with a writing package
-    # The following example uses jsonlines to write the data to a BytesSplitFileWriter
-    # when data written to the in memory buffer exceeds BytesSplitFileWriter then the data
-    # in the buffer is written to S3. With the first file being "s3://test/folder/test-file-0.jsonl.gz"
+    # The following example uses jsonlines to write the
+    # data to a BytesSplitFileWriter
+    # when data written to the in memory buffer exceeds
+    # BytesSplitFileWriter then the data in the buffer
+    # is written to S3. With the first file being
+    # "s3://test/folder/test-file-0.jsonl.gz"
     # and the next "s3://test/folder/test-file-1.jsonl.gz", etc.
 
     from dataengineeringutils3.writer import StringSplitFileWriter
@@ -232,7 +246,7 @@ class StringSplitFileWriter(BaseSplitFileWriter):
         {"col1": 1, "col2": "y"},
         {"col1": 2, "col2": "z"}
     ]
-    
+
     ssfw = StringSplitFileWriter("s3://test/folder/",
         "test-file",
         max_bytes=30,
@@ -264,10 +278,11 @@ class StringSplitFileWriter(BaseSplitFileWriter):
 class JsonNlSplitFileWriter(BaseSplitFileWriter):
     """
     Class for writing json line into large datasets in to chunks and writing to s3.
-    This class writes to a string (rather than fileIO) and does smaller checks for a speedier
-    read write. Espeicially when writing multiple lines. However, if scaling to large amounts of data
-    it is probably better to use a json writer like jsonlines with the BytesSplitFileWriter.
-    The extension and the _write methods are defined in classes which extend this class
+    This class writes to a string (rather than fileIO) and does smaller checks for
+    a speedier read write. Espeicially when writing multiple lines. However,
+    if scaling to large amounts of data it is probably better to use a json writer
+    like jsonlines with the BytesSplitFileWriter. The extension and the _write
+    methods are defined in classes which extend this class
     lines = [
         '{"key": "value"}'
     ]
@@ -322,7 +337,7 @@ class JsonNlSplitFileWriter(BaseSplitFileWriter):
         Writes multiple lines then checks if file limit hit.
         So will be quicker but less accurate on breaking up files.
         """
-        self.mem_file += "\n".join(line_transform(l) for l in lines) + "\n"
+        self.mem_file += "\n".join(line_transform(line) for line in lines) + "\n"
         self.num_lines += len(lines)
         self.total_lines += len(lines)
         if self.file_size_limit_reached():

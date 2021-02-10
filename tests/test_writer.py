@@ -62,8 +62,8 @@ def write_manually(result_set):
     num_files = 0
     num_lines = 0
     while True:
-        for l in result_set:
-            string += f"{l}"
+        for line in result_set:
+            string += f"{line}"
             if not num_lines % CHUNK_SIZE and sys.getsizeof(string) > MAX_BYTES:
                 gzip_string_write_to_s3(
                     string, f"s3://test/test-file-two-{num_files}.jsonl.gz"

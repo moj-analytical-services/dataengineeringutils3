@@ -1,8 +1,6 @@
 import sys
 from unittest.mock import call
 
-import pytest
-
 from dataengineeringutils3.db import SelectQuerySet
 from dataengineeringutils3.s3 import gzip_string_write_to_s3
 from dataengineeringutils3.writer import JsonNlSplitFileWriter
@@ -62,8 +60,8 @@ def write_with_writer_and_qs(result_set):
 def write_with_write_to_file(result_set):
     select_queryset = SelectQuerySet(MockQs(result_set), "", 10000)
 
-    def transform_line(l):
-        return l
+    def transform_line(x):
+        return x
 
     with JsonNlSplitFileWriter(S3_BASEPATH, FILE_KEY, MAX_BYTES, CHUNK_SIZE) as writer:
         select_queryset.write_to_file(writer, transform_line)
@@ -74,12 +72,12 @@ def write_manually(result_set):
     num_files = 0
     num_lines = 0
 
-    def transform_line(l):
-        return f"{l}"
+    def transform_line(x):
+        return f"{x}"
 
     while True:
-        for l in result_set:
-            string += transform_line(l)
+        for line in result_set:
+            string += transform_line(line)
             if not num_lines % CHUNK_SIZE and sys.getsizeof(string) > MAX_BYTES:
                 gzip_string_write_to_s3(
                     string, f"s3://test/test-file-two_{num_files}.josnl.gz"

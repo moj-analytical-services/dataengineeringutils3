@@ -1,10 +1,6 @@
-import sys
 from unittest.mock import call
 
-import pytest
-
 from dataengineeringutils3.db import SelectQuerySet
-from tests.helpers import time_func
 from tests.mocks import MockQs
 
 
@@ -28,20 +24,20 @@ def test_select_queryset(select_queryset):
 
 def gen(result_set):
     while True:
-        return (l for l in result_set)
+        return (res for res in result_set)
 
 
 def loop_through_qs(result_set):
     select_queryset = SelectQuerySet(MockQs(result_set), "", 1000000)
     results = []
-    [results.append(l) for rows in select_queryset.iter_chunks() for l in rows]
+    [results.append(row) for rows in select_queryset.iter_chunks() for row in rows]
     return results
 
 
 def loop_through_list(result_set):
     results = []
     while True:
-        for l in MockQs(result_set).fetchmany(1000000):
-            results.append(l)
+        for out in MockQs(result_set).fetchmany(1000000):
+            results.append(out)
         break
     return results
