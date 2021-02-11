@@ -1,0 +1,53 @@
+name: Lint
+on:
+  - pull_request
+
+jobs:
+  preview:
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Check for flake8 config
+        run: |
+          if [ -e ./.flake8 ]; then
+              echo "A .flake8 config file has been found in the root of this branch and will be used in this workflow."
+          else
+              echo "No .flake8 config file has been found in the root of this branch and so the standard Data Engineering config will used."
+              curl https://moj-analytical-services.github.io/.github/configs/data-engineering/flake8 > .flake8
+          fi
+
+      - name: Check for yamllint config
+        run: |
+          if [ -e ./.yamllint ]; then
+              echo "A .yamllint config file has been found in the root of this branch and will be used in this workflow."
+          else
+              echo "No .yamllint config file has been found in the root of this branch and so the standard Data Engineering config will used."
+              curl https://moj-analytical-services.github.io/.github/configs/data-engineering/yamllint > .yamllint
+          fi
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip==20.3.3
+          pip install flake8 yamllint
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Lint Python files with flake8
+        run: >
+          flake8 .
+
+      - name: Lint YAML files with yamllint
+        run: >
+          yamllint .
