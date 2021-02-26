@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dataengineeringutils3"
-version = "1.1.1"
+version = "1.1.2"
 description = "Data engineering utils Python 3 version"
 authors = ["Data Engineering <dataengineering@digital.justice.gov.uk>"]
 license = "MIT"
@@ -17,7 +17,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.6 <3.9"
+python = ">=3.6 <=3.9"
 boto3 = ">=1.10 <2.0.0"
 
 [tool.poetry.dev-dependencies]
