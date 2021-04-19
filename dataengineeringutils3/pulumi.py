@@ -1,3 +1,13 @@
+from deprecated import deprecated
+
+
+@deprecated(
+    reason=(
+        "This class is now deprecated. "
+        "Please use Tagger from data-engineering-pulumi-components."
+    ),
+    version="1.2.0",
+)
 class Tagger:
     def __init__(
         self,
