@@ -270,7 +270,7 @@ def test_write_local_folder_to_s3(s3, bucket, tmpdir):
     file2 = tmpdir.mkdir("folder").join("file2.txt")  # upload
     file3 = tmpdir.join("folder").mkdir("subfolder").join("file3.txt")  # upload
     file4 = tmpdir.mkdir("other-folder").join("file4.txt")  # don't upload
-    folder_path = Path(tmpdir/"folder")
+    folder_path = Path(tmpdir / "folder")
 
     # Add content to the local files
     files = [file1, file2, file3, file4]
@@ -278,7 +278,7 @@ def test_write_local_folder_to_s3(s3, bucket, tmpdir):
 
     # Upload to s3
     write_local_folder_to_s3(folder_path, "s3://test/test-folder")
-    
+
     # Check the right files are in the test bucket
     bucket_object = s3.Bucket("test")
     objects = bucket_object.objects.all()
@@ -293,3 +293,12 @@ def test_write_local_folder_to_s3(s3, bucket, tmpdir):
 
     # No error if overwrite=True
     write_local_folder_to_s3(folder_path, "s3://test/test-folder", True)
+
+
+def test_write_s3_file_to_local():
+
+    assert 0
+
+
+def test_write_s3_folder_to_local():
+    assert 0

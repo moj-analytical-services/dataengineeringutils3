@@ -219,7 +219,12 @@ def write_local_file_to_s3(local_file_path, s3_path, overwrite=False):
     return resp
 
 
-def write_local_folder_to_s3(root_folder: Union[Path, str], s3_path: str, overwrite: bool = False, current_folder=None) -> None:
+def write_local_folder_to_s3(
+    root_folder: Union[Path, str],
+    s3_path: str,
+    overwrite: bool = False,
+    current_folder: Union[Path, str] = None,
+) -> None:
     """Copy a local folder and all its contents to s3, keeping its directory structure.
 
     :param root_folder: the folder whose contents you want to upload
@@ -242,13 +247,60 @@ def write_local_folder_to_s3(root_folder: Union[Path, str], s3_path: str, overwr
             write_local_folder_to_s3(root_folder, s3_path, overwrite, obj)
 
 
-def write_s3_file_to_local(s3_path: str, local_file_path: Union[Path, str], overwrite: bool = False):
+def write_s3_file_to_local(
+    s3_path: str,
+    local_file_path: Union[Path, str],
+    overwrite: bool = False,
+) -> None:
+    """Save a file from an s3 path to a local folder.
+
+    :param s3_path: full s3 path of the file you want to download
+    :param local_file_path: Path or str for where to save the file
+    :param overwrite: if True, overwrite an existing file at the local_file_path
+
+    :returns: None
     """
-    """
-    return
+    # Check if there's already a file there
+    if not overwrite:
+        location = Path(local_file_path)
+        if location.is_file():
+            raise FileExistsError
+
+    # Create the folder if it doesn't yet exist
+    folder = local_file_path.rsplit("/", 1)[0]
+    Path(folder).mkdir(parents=True, exist_ok=True)
+
+    # Download the file
+    s3 = boto3.client("s3")
+    bucket, key = s3_path_to_bucket_key(s3_path)
+    s3.download_file(bucket, key, local_file_path)
 
 
-def write_s3_folder_to_local(s3_path: str, local_folder_path: Union[Path, str], overwrite: bool = False):
+def write_s3_folder_to_local(
+    s3_path: str, local_folder_path: Union[Path, str], overwrite: bool = False
+) -> None:
+    """Copy files from an s3 'folder' to a local folder, keeping directory structure.
+
+    :param s3_path: full s3 path of the folder whose contents you want to download
+    :param local_folder_path: Path or str for where to save the contents of s3_path
+    :param overwrite: if False, raise an error if any of the files already exist
+
+    :returns: None
     """
-    """
-    return
+    root = Path(local_folder_path)
+    root.mkdir(parents=True, exist_ok=True)
+
+    s3 = boto3.resource("s3")
+    bucket_name, s3_folder = s3_path_to_bucket_key(s3_path)
+    bucket = s3.Bucket(bucket_name)
+
+    # For each file in bucket, check if it needs a new subfolder, then download it
+    for obj in bucket.objects.filter(Prefix=s3_folder):
+        s3_subfolder, filename = obj.key.rsplit("/", 1)
+        local_subfolder = root / s3_subfolder
+        destination = local_subfolder / filename
+        if not overwrite and destination.is_file():
+            raise FileExistsError
+        
+        local_subfolder.mkdir(parents=True, exist_ok=True)
+        bucket.download_file(obj.key, destination)
