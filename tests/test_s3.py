@@ -1,6 +1,7 @@
 import gzip
 import io
 import os
+from pathlib import Path
 import pytest
 import json
 
@@ -16,7 +17,10 @@ from dataengineeringutils3.s3 import (
     copy_s3_object,
     check_for_s3_file,
     write_local_file_to_s3,
+    write_local_folder_to_s3,
 )
+
+bucket_name = "test"
 
 
 @pytest.mark.parametrize(
@@ -32,7 +36,7 @@ def test_s3_path_to_bucket_key(s3_path, exp_bucket, exp_key):
     assert key == exp_key
 
 
-def test_gzip_string_write_to_s3(s3):
+def test_gzip_string_write_to_s3(s3, bucket):
     """
     Test that file is gziped correctly and sent to s3
     :param s3: mocked s3 resource
@@ -40,21 +44,14 @@ def test_gzip_string_write_to_s3(s3):
     """
     file_text = "test-text"
     file_key = "test-key.txt.gz"
-    bucket_name = "test"
     s3_path = f"s3://{bucket_name}/{file_key}"
-    s3.meta.client.create_bucket(
-        Bucket=bucket_name,
-        CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
-    )
     gzip_string_write_to_s3(file_text, s3_path)
     file_object = io.BytesIO()
     s3.Object(bucket_name, file_key).download_fileobj(file_object)
     assert gzip.decompress(file_object.getvalue()).decode("utf-8") == file_text
 
 
-def test_get_filepaths_from_s3_folder(s3):
-
-    bucket_name = "test"
+def test_get_filepaths_from_s3_folder(s3, bucket):
 
     files = [
         {"folder": "f1", "key": "my_file.json", "body": "test"},
@@ -63,11 +60,6 @@ def test_get_filepaths_from_s3_folder(s3):
         {"folder": "f", "key": "ffile.json", "body": "test"},
         {"folder": "f.2", "key": "otherfile.json", "body": "test"},
     ]
-
-    s3.meta.client.create_bucket(
-        Bucket=bucket_name,
-        CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
-    )
 
     for f in files:
         s3.Object(bucket_name, f["folder"] + "/" + f["key"]).put(Body=f["body"])
@@ -91,9 +83,7 @@ def test_get_filepaths_from_s3_folder(s3):
     assert fps == ["s3://test/f1/my_file.json", "s3://test/f1/otherfile.json"]
 
 
-def test_read_json_from_s3(s3):
-
-    bucket_name = "test"
+def test_read_json_from_s3(s3, bucket):
 
     test_dict = {"foo": "bar"}
     body = json.dumps(test_dict)
@@ -101,11 +91,6 @@ def test_read_json_from_s3(s3):
         {"folder": "f1", "key": "my_file.json", "body": body},
         {"folder": "f1/agfa", "key": "file_no_ext", "body": body},
     ]
-
-    s3.meta.client.create_bucket(
-        Bucket=bucket_name,
-        CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
-    )
     for f in files:
         s3.Object(bucket_name, f["folder"] + "/" + f["key"]).put(Body=f["body"])
 
@@ -114,14 +99,7 @@ def test_read_json_from_s3(s3):
     assert read_json_from_s3("s3://test/f1/agfa/file_no_ext") == test_dict
 
 
-def test_write_json_s3(s3):
-
-    bucket_name = "test"
-    s3.meta.client.create_bucket(
-        Bucket=bucket_name,
-        CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
-    )
-
+def test_write_json_s3(s3, bucket):
     test_dict = {"foo": "bar", "something": 0}
 
     write_json_to_s3(test_dict, "s3://test/one.json")
@@ -185,13 +163,7 @@ def test_copy_s3_folder_contents_to_new_folder(source, dest, exclude, s3):
     assert sorted(actual) == sorted(expected)
 
 
-def test_delete_s3_object(s3):
-
-    bucket_name = "test"
-    s3.meta.client.create_bucket(
-        Bucket=bucket_name,
-        CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
-    )
+def test_delete_s3_object(s3, bucket):
     s3.Bucket(bucket_name).objects.all()
     s3.Object(bucket_name, "test.txt").put(Body="test")
     s3.Object(bucket_name, "test2.txt").put(Body="")
@@ -202,10 +174,7 @@ def test_delete_s3_object(s3):
     assert [o.key for o in s3.Bucket("test").objects.all()] == []
 
 
-def test_delete_s3_folder_contents(s3):
-
-    bucket_name = "test"
-
+def test_delete_s3_folder_contents(s3, bucket):
     files = [
         {"folder": "f1", "key": "my_file.json", "body": "test"},
         {"folder": "f1", "key": "df.first.py", "body": "test"},
@@ -214,10 +183,6 @@ def test_delete_s3_folder_contents(s3):
         {"folder": "f.2", "key": "otherfile.json", "body": "test"},
     ]
 
-    s3.meta.client.create_bucket(
-        Bucket=bucket_name,
-        CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
-    )
     expected1 = ["f1/otherfile.json", "f/ffile.json", "f.2/otherfile.json"]
     expected2 = ["f/ffile.json", "f.2/otherfile.json"]
     expected3 = []
@@ -267,14 +232,7 @@ def test_copy_s3_object(s3):
     assert sorted(actual) == sorted(expected)
 
 
-def test_check_for_s3_file(s3):
-
-    bucket_name = "test"
-    s3.meta.client.create_bucket(
-        Bucket=bucket_name,
-        CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
-    )
-
+def test_check_for_s3_file(s3, bucket):
     files = [
         {"folder": "f1", "key": "df.first.py", "body": "test"},
         {"folder": "f1", "key": "otherfile.json", "body": ""},
@@ -290,18 +248,12 @@ def test_check_for_s3_file(s3):
     assert not check_for_s3_file(f"s3://{bucket_name}/f1/no_file.json")
 
 
-def test_upload_local_file(s3, tmp_path):
+def test_upload_local_file(bucket, tmp_path):
 
     path = os.path.join(tmp_path, "abctestfile.json")
     test_file = open(path, "w")
     test_file.write("some test contents")
     test_file.close()
-
-    bucket_name = "test"
-    s3.meta.client.create_bucket(
-        Bucket=bucket_name,
-        CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
-    )
 
     write_local_file_to_s3(path, "s3://test/abctestfile.json")
     assert check_for_s3_file("s3://test/abctestfile.json")
@@ -310,3 +262,34 @@ def test_upload_local_file(s3, tmp_path):
         write_local_file_to_s3(path, "s3://test/abctestfile.json")
 
     write_local_file_to_s3(path, "s3://test/abctestfile.json", overwrite=True)
+
+
+def test_write_local_folder_to_s3(s3, bucket, tmpdir):
+    # Create local files
+    file1 = tmpdir.join("file1.txt")  # don't upload
+    file2 = tmpdir.mkdir("folder").join("file2.txt")  # upload
+    file3 = tmpdir.join("folder").mkdir("subfolder").join("file3.txt")  # upload
+    file4 = tmpdir.mkdir("other-folder").join("file4.txt")  # don't upload
+    folder_path = Path(tmpdir/"folder")
+
+    # Add content to the local files
+    files = [file1, file2, file3, file4]
+    [f.write("Content") for f in files]
+
+    # Upload to s3
+    write_local_folder_to_s3(folder_path, "s3://test/test-folder")
+    
+    # Check the right files are in the test bucket
+    bucket_object = s3.Bucket("test")
+    objects = bucket_object.objects.all()
+    assert sorted([o.key for o in objects]) == [
+        "test-folder/file2.txt",
+        "test-folder/subfolder/file3.txt",
+    ]
+
+    # Expect error if trying to upload again with overwrite=False
+    with pytest.raises(ValueError):
+        write_local_folder_to_s3(folder_path, "s3://test/test-folder")
+
+    # No error if overwrite=True
+    write_local_folder_to_s3(folder_path, "s3://test/test-folder", True)

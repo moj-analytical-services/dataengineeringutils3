@@ -1,9 +1,11 @@
 import gzip
+from io import StringIO
 import json
+from pathlib import Path
+from typing import Union
+
 import boto3
 import botocore
-
-from io import StringIO
 
 
 def gzip_string_write_to_s3(file_as_string, s3_path):
@@ -215,3 +217,38 @@ def write_local_file_to_s3(local_file_path, s3_path, overwrite=False):
         resp = s3_resource.meta.client.upload_file(local_file_path, bucket, key)
 
     return resp
+
+
+def write_local_folder_to_s3(root_folder: Union[Path, str], s3_path: str, overwrite: bool = False, current_folder=None) -> None:
+    """Copy a local folder and all its contents to s3, keeping its directory structure.
+
+    :param root_folder: the folder whose contents you want to upload
+    :param s3_path: where you want the folder to be located when it's uploaded 
+    :param overwrite: if True, overwrite existing files in the target location
+        if False, raise ValueError if existing files are found in the target location
+    :param current_folder: leave as None - only used during recursion
+
+    :returns: None
+    """
+    if not current_folder:
+        current_folder = root_folder
+    for obj in Path(current_folder).iterdir():
+        if obj.is_file():
+            # Maintain local folder structure by using paths relative to the root folder
+            relative_to_root = str(obj.relative_to(root_folder))
+            write_local_file_to_s3(str(obj), f"{s3_path}/{relative_to_root}", overwrite)
+        else:
+            # If not a file, it's a directory - so rerun the process recursively
+            write_local_folder_to_s3(root_folder, s3_path, overwrite, obj)
+
+
+def write_s3_file_to_local(s3_path: str, local_file_path: Union[Path, str], overwrite: bool = False):
+    """
+    """
+    return
+
+
+def write_s3_folder_to_local(s3_path: str, local_folder_path: Union[Path, str], overwrite: bool = False):
+    """
+    """
+    return
