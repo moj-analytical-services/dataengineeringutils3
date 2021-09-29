@@ -267,13 +267,13 @@ def write_s3_file_to_local(
             raise FileExistsError
 
     # Create the folder if it doesn't yet exist
-    folder = local_file_path.rsplit("/", 1)[0]
+    folder = str(local_file_path).rsplit("/", 1)[0]
     Path(folder).mkdir(parents=True, exist_ok=True)
 
     # Download the file
     s3 = boto3.client("s3")
     bucket, key = s3_path_to_bucket_key(s3_path)
-    s3.download_file(bucket, key, local_file_path)
+    s3.download_file(bucket, key, str(local_file_path))
 
 
 def write_s3_folder_to_local(
@@ -303,4 +303,4 @@ def write_s3_folder_to_local(
             raise FileExistsError
         
         local_subfolder.mkdir(parents=True, exist_ok=True)
-        bucket.download_file(obj.key, destination)
+        bucket.download_file(obj.key, str(destination))

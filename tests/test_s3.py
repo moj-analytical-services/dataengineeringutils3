@@ -18,6 +18,8 @@ from dataengineeringutils3.s3 import (
     check_for_s3_file,
     write_local_file_to_s3,
     write_local_folder_to_s3,
+    write_s3_file_to_local,
+    write_s3_folder_to_local,
 )
 
 bucket_name = "test"
@@ -295,10 +297,46 @@ def test_write_local_folder_to_s3(s3, bucket, tmpdir):
     write_local_folder_to_s3(folder_path, "s3://test/test-folder", True)
 
 
-def test_write_s3_file_to_local():
+def test_write_s3_file_to_local(s3, bucket, tmpdir):
+    # Create one file with a prefix and one without
+    files = [
+        {"key": "subfolder/test1.txt", "body": "test"},
+        {"key": "test2.txt", "body": "content"},
+    ]
+    for f in files:
+        s3.Object(bucket_name, f["key"]).put(Body=f["body"])
 
-    assert 0
+    # Save one to a subfolder and one to root tmpdir
+    local = Path(tmpdir) 
+    write_s3_file_to_local("s3://test/subfolder/test1.txt", local / "test1.txt")
+    write_s3_file_to_local("s3://test/test2.txt", local / "subfolder"/ "test2.txt")
+
+    # Check the local files exist and have the right content
+    with open(local / "test1.txt", "r") as f:
+        assert f.read() == "test"
+
+    with open(local / "subfolder" / "test2.txt", "r") as f:
+        assert f.read() == "content"
 
 
-def test_write_s3_folder_to_local():
-    assert 0
+def test_write_s3_folder_to_local(s3, bucket, tmpdir):
+    # Add files to s3
+    text = "text"
+    s3.Object(bucket_name, "not-included.txt").put(Body=text)
+    s3.Object(bucket_name, "test-folder/test-file-1.txt").put(Body=text)
+    s3.Object(bucket_name, "test-folder/folder/test-file-2.txt").put(Body=text)
+    s3.Object(bucket_name, "test-folder/folder/subfolder/test-file-3.txt").put(Body=text)
+    s3.Object(bucket_name, "test-folder/folder-2/test-file-4.txt").put(Body=text)
+ 
+    # Download them to a folder
+    destination = Path(tmpdir) / "new-folder"
+    write_s3_folder_to_local("s3://test/test-folder", destination)
+
+    # Check the folder
+    results = sorted([str(d.relative_to(destination)) for d in destination.rglob("*") if d.is_file()])
+    assert results == [
+        "test-folder/folder-2/test-file-4.txt",
+        "test-folder/folder/subfolder/test-file-3.txt",
+        "test-folder/folder/test-file-2.txt", 
+        "test-folder/test-file-1.txt", 
+    ]
