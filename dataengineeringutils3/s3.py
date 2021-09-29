@@ -248,9 +248,7 @@ def write_local_folder_to_s3(
 
 
 def write_s3_file_to_local(
-    s3_path: str,
-    local_file_path: Union[Path, str],
-    overwrite: bool = False,
+    s3_path: str, local_file_path: Union[Path, str], overwrite: bool = False,
 ) -> None:
     """Save a file from an s3 path to a local folder.
 
@@ -301,6 +299,6 @@ def write_s3_folder_to_local(
         destination = local_subfolder / filename
         if not overwrite and destination.is_file():
             raise FileExistsError
-        
+
         local_subfolder.mkdir(parents=True, exist_ok=True)
         bucket.download_file(obj.key, str(destination))

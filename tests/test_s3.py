@@ -307,9 +307,9 @@ def test_write_s3_file_to_local(s3, bucket, tmpdir):
         s3.Object(bucket_name, f["key"]).put(Body=f["body"])
 
     # Save one to a subfolder and one to root tmpdir
-    local = Path(tmpdir) 
+    local = Path(tmpdir)
     write_s3_file_to_local("s3://test/subfolder/test1.txt", local / "test1.txt")
-    write_s3_file_to_local("s3://test/test2.txt", local / "subfolder"/ "test2.txt")
+    write_s3_file_to_local("s3://test/test2.txt", local / "subfolder" / "test2.txt")
 
     # Check the local files exist and have the right content
     with open(local / "test1.txt", "r") as f:
@@ -325,18 +325,22 @@ def test_write_s3_folder_to_local(s3, bucket, tmpdir):
     s3.Object(bucket_name, "not-included.txt").put(Body=text)
     s3.Object(bucket_name, "test-folder/test-file-1.txt").put(Body=text)
     s3.Object(bucket_name, "test-folder/folder/test-file-2.txt").put(Body=text)
-    s3.Object(bucket_name, "test-folder/folder/subfolder/test-file-3.txt").put(Body=text)
+    s3.Object(bucket_name, "test-folder/folder/subfolder/test-file-3.txt").put(
+        Body=text
+    )
     s3.Object(bucket_name, "test-folder/folder-2/test-file-4.txt").put(Body=text)
- 
+
     # Download them to a folder
     destination = Path(tmpdir) / "new-folder"
     write_s3_folder_to_local("s3://test/test-folder", destination)
 
     # Check the folder
-    results = sorted([str(d.relative_to(destination)) for d in destination.rglob("*") if d.is_file()])
+    results = sorted(
+        [str(d.relative_to(destination)) for d in destination.rglob("*") if d.is_file()]
+    )
     assert results == [
         "test-folder/folder-2/test-file-4.txt",
         "test-folder/folder/subfolder/test-file-3.txt",
-        "test-folder/folder/test-file-2.txt", 
-        "test-folder/test-file-1.txt", 
+        "test-folder/folder/test-file-2.txt",
+        "test-folder/test-file-1.txt",
     ]
