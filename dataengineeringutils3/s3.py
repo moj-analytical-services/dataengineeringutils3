@@ -201,7 +201,7 @@ def check_for_s3_file(s3_path):
 
 def write_local_file_to_s3(local_file_path, s3_path, overwrite=False):
     """
-    Checks if a file exists in the S3 path provided.
+    Copy a file from a local folder to a location on s3.
     :param local_file_path: "myfolder/myfile.json"
     :param s3_path: "s3://path/to/myfile.json"
 
@@ -223,6 +223,7 @@ def write_local_folder_to_s3(
     root_folder: Union[Path, str],
     s3_path: str,
     overwrite: bool = False,
+    include_hidden_files: bool = True,
     current_folder: Union[Path, str] = None,
 ) -> None:
     """Copy a local folder and all its contents to s3, keeping its directory structure.
@@ -231,17 +232,24 @@ def write_local_folder_to_s3(
     :param s3_path: where you want the folder to be located when it's uploaded 
     :param overwrite: if True, overwrite existing files in the target location
         if False, raise ValueError if existing files are found in the target location
+    :param include_hidden_files: if False, ignore files whose names start with a .
     :param current_folder: leave as None - only used during recursion
 
     :returns: None
     """
+    # On initial run, set current folder and make sure s3 path ahs a slash on the end
     if not current_folder:
         current_folder = root_folder
+        s3_path = _add_slash(s3_path)
+
     for obj in Path(current_folder).iterdir():
         if obj.is_file():
-            # Maintain local folder structure by using paths relative to the root folder
-            relative_to_root = str(obj.relative_to(root_folder))
-            write_local_file_to_s3(str(obj), f"{s3_path}/{relative_to_root}", overwrite)
+            # Ignore hidden files if requested
+            if include_hidden_files or not obj.name.startswith("."):
+                # Construct relative path to retain local folder structure
+                relative_to_root = str(obj.relative_to(root_folder))
+                file_s3_path = f"{s3_path}{relative_to_root}"
+                write_local_file_to_s3(str(obj), file_s3_path, overwrite)
         else:
             # If not a file, it's a directory - so rerun the process recursively
             write_local_folder_to_s3(root_folder, s3_path, overwrite, obj)
@@ -285,20 +293,26 @@ def write_s3_folder_to_local(
 
     :returns: None
     """
+    # Prepare local root folder
     root = Path(local_folder_path)
     root.mkdir(parents=True, exist_ok=True)
 
+    # Get an object representing the bucket
     s3 = boto3.resource("s3")
     bucket_name, s3_folder = s3_path_to_bucket_key(s3_path)
     bucket = s3.Bucket(bucket_name)
 
     # For each file in bucket, check if it needs a new subfolder, then download it
     for obj in bucket.objects.filter(Prefix=s3_folder):
+        # Split up s3 path to work out directory structure for the local file
         s3_subfolder, filename = obj.key.rsplit("/", 1)
         local_subfolder = root / s3_subfolder
         destination = local_subfolder / filename
+
+        # Raise an error if file already exists and not overwriting
         if not overwrite and destination.is_file():
             raise FileExistsError
 
+        # Make the local folder if it doesn't exist, then download the file
         local_subfolder.mkdir(parents=True, exist_ok=True)
         bucket.download_file(obj.key, str(destination))
