@@ -269,17 +269,24 @@ def test_upload_local_file(bucket, tmp_path):
 def test_write_local_folder_to_s3(s3, bucket, tmpdir):
     # Create local files
     file1 = tmpdir.join("file1.txt")  # don't upload
-    file2 = tmpdir.mkdir("folder").join("file2.txt")  # upload
-    file3 = tmpdir.join("folder").mkdir("subfolder").join("file3.txt")  # upload
+    folder = tmpdir.mkdir("folder")
+    file2 = folder.join("file2.txt")  # upload
+    hidden = folder.join(".hidden")  # don't upload
+    file3 = folder.mkdir("subfolder").join("file3.txt")  # upload
     file4 = tmpdir.mkdir("other-folder").join("file4.txt")  # don't upload
     folder_path = Path(tmpdir / "folder")
 
     # Add content to the local files
-    files = [file1, file2, file3, file4]
+    files = [file1, file2, hidden, file3, file4]
     [f.write("Content") for f in files]
 
     # Upload to s3
-    write_local_folder_to_s3(folder_path, "s3://test/test-folder")
+    write_local_folder_to_s3(
+        folder_path,
+        "s3://test/test-folder",
+        overwrite=False,
+        include_hidden_files=False
+    )
 
     # Check the right files are in the test bucket
     bucket_object = s3.Bucket("test")

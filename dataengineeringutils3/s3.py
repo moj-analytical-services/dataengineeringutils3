@@ -252,7 +252,9 @@ def write_local_folder_to_s3(
                 write_local_file_to_s3(str(obj), file_s3_path, overwrite)
         else:
             # If not a file, it's a directory - so rerun the process recursively
-            write_local_folder_to_s3(root_folder, s3_path, overwrite, obj)
+            write_local_folder_to_s3(
+                root_folder, s3_path, overwrite, include_hidden_files, obj
+            )
 
 
 def write_s3_file_to_local(
