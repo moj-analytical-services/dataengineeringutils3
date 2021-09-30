@@ -229,7 +229,7 @@ def write_local_folder_to_s3(
     """Copy a local folder and all its contents to s3, keeping its directory structure.
 
     :param root_folder: the folder whose contents you want to upload
-    :param s3_path: where you want the folder to be located when it's uploaded 
+    :param s3_path: where you want the folder to be located when it's uploaded
     :param overwrite: if True, overwrite existing files in the target location
         if False, raise ValueError if existing files are found in the target location
     :param include_hidden_files: if False, ignore files whose names start with a .
