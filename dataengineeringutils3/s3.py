@@ -1,6 +1,7 @@
 import gzip
 from io import StringIO
 import json
+import os
 from pathlib import Path
 from typing import Union
 
@@ -223,8 +224,7 @@ def write_local_folder_to_s3(
     root_folder: Union[Path, str],
     s3_path: str,
     overwrite: bool = False,
-    include_hidden_files: bool = True,
-    current_folder: Union[Path, str] = None,
+    include_hidden_files: bool = False,
 ) -> None:
     """Copy a local folder and all its contents to s3, keeping its directory structure.
 
@@ -233,28 +233,15 @@ def write_local_folder_to_s3(
     :param overwrite: if True, overwrite existing files in the target location
         if False, raise ValueError if existing files are found in the target location
     :param include_hidden_files: if False, ignore files whose names start with a .
-    :param current_folder: leave as None - only used during recursion
 
     :returns: None
     """
-    # On initial run, set current folder and make sure s3 path ahs a slash on the end
-    if not current_folder:
-        current_folder = root_folder
-        s3_path = _add_slash(s3_path)
-
-    for obj in Path(current_folder).iterdir():
-        if obj.is_file():
-            # Ignore hidden files if requested
-            if include_hidden_files or not obj.name.startswith("."):
-                # Construct relative path to retain local folder structure
-                relative_to_root = str(obj.relative_to(root_folder))
-                file_s3_path = f"{s3_path}{relative_to_root}"
-                write_local_file_to_s3(str(obj), file_s3_path, overwrite)
-        else:
-            # If not a file, it's a directory - so rerun the process recursively
-            write_local_folder_to_s3(
-                root_folder, s3_path, overwrite, include_hidden_files, obj
-            )
+    for obj in Path(root_folder).rglob("*"):
+        if obj.is_file() and (include_hidden_files or not obj.name.startswith(".")):
+            # Construct s3 path based on current filepath and local root folder
+            relative_to_root = str(obj.relative_to(root_folder))
+            file_s3_path = os.path.join(s3_path, relative_to_root)
+            write_local_file_to_s3(str(obj), file_s3_path, overwrite)
 
 
 def write_s3_file_to_local(
@@ -272,16 +259,21 @@ def write_s3_file_to_local(
     if not overwrite:
         location = Path(local_file_path)
         if location.is_file():
-            raise FileExistsError
+            raise FileExistsError(
+                (
+                    f"There's already a file at {str(location)}. "
+                    "Set overwrite to True to replace it."
+                )
+            )
 
     # Create the folder if it doesn't yet exist
     folder = str(local_file_path).rsplit("/", 1)[0]
     Path(folder).mkdir(parents=True, exist_ok=True)
 
     # Download the file
-    s3 = boto3.client("s3")
+    s3_client = boto3.client("s3")
     bucket, key = s3_path_to_bucket_key(s3_path)
-    s3.download_file(bucket, key, str(local_file_path))
+    s3_client.download_file(bucket, key, str(local_file_path))
 
 
 def write_s3_folder_to_local(
@@ -300,9 +292,9 @@ def write_s3_folder_to_local(
     root.mkdir(parents=True, exist_ok=True)
 
     # Get an object representing the bucket
-    s3 = boto3.resource("s3")
+    s3_resource = boto3.resource("s3")
     bucket_name, s3_folder = s3_path_to_bucket_key(s3_path)
-    bucket = s3.Bucket(bucket_name)
+    bucket = s3_resource.Bucket(bucket_name)
 
     # For each file in bucket, check if it needs a new subfolder, then download it
     for obj in bucket.objects.filter(Prefix=s3_folder):
@@ -313,7 +305,12 @@ def write_s3_folder_to_local(
 
         # Raise an error if file already exists and not overwriting
         if not overwrite and destination.is_file():
-            raise FileExistsError
+            raise FileExistsError(
+                (
+                    f"There's already a file at {str(destination)}. "
+                    "Set overwrite to True to replace it."
+                )
+            )
 
         # Make the local folder if it doesn't exist, then download the file
         local_subfolder.mkdir(parents=True, exist_ok=True)
