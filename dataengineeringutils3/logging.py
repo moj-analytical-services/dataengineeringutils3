@@ -7,25 +7,28 @@ default_fmt = "%(asctime)s | %(funcName)s | %(levelname)s | %(message)s"
 default_date_fmt = "%Y-%m-%d %H:%M:%S"
 
 
-class ContextFilter(logging.Filter):
-    """
-    This is just overkill to apply a default context param to the log.
-    But it does mean I don't have to define extra everytime I wanna log.
-    So keeping it.
-    """
+def _make_fmt_json(fmt: str, sep: str):
+    fmt_list = fmt.split(sep)
+    fmt_val_list = [i.strip() for i in fmt_list]
+    fmt_key_list = [i[2:-2] for i in fmt_val_list]
 
-    def filter(self, record):
-        if not getattr(record, "context", None):
-            record.context = "PROCESSING"
-        return True
+    json_str = ""
+    for key, val in zip(fmt_key_list, fmt_val_list):
+        json_str += f'"{key}" : "{val}", '
+    return "{" + json_str[:-2] + "}"
 
 
 def get_logger(
-    fmt=default_fmt, datefmt=default_date_fmt
+    fmt: str = default_fmt,
+    datefmt: str = default_date_fmt,
+    output_format="human",
+    sep: str = "|",
 ) -> Tuple[logging.Logger, io.StringIO]:
     """
     returns a logger object and an io stream of the data that is logged
     """
+
+    fmt = _make_fmt_json(fmt, sep) if output_format == "json" else fmt
 
     log = logging.getLogger("root")
     log.setLevel(logging.DEBUG)
@@ -42,8 +45,5 @@ def get_logger(
     console.setLevel(logging.INFO)
     console.setFormatter(log_formatter)
     log.addHandler(console)
-
-    cf = ContextFilter()
-    log.addFilter(cf)
 
     return log, log_stringio

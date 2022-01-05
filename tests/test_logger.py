@@ -1,9 +1,10 @@
+import json
 import re
 
 from dataengineeringutils3.logging import get_logger
 
 
-def test_output():
+def test_human_output():
     """
     ensures the log ouput is as expected (including context filter)
     """
@@ -23,6 +24,23 @@ def test_output():
     )
 
     assert regex.search(a)
+
+
+def test_json_output():
+    """
+    tests the format of the output is valid json
+    """
+
+    # get the logger and the IO stream
+    logger, logger_io_stream = get_logger(output_format="json")
+
+    # log and retrieve a message
+    log_message = "a message!"
+    logger.info(log_message)
+    a = logger_io_stream.getvalue()
+
+    # assert that it can be json loaded
+    assert json.loads(a)
 
 
 def test_diff_fmt():
