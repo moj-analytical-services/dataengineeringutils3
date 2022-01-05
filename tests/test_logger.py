@@ -24,7 +24,7 @@ def test_output(context_filter):
     # ensure it matches the required pattern
     regex = re.compile(
         r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \| "
-        f"test_output \| INFO \| {context} \| {log_message}$"
+        f"test_output | INFO | {context} | {log_message}$"
     )
 
     assert regex.search(a)
@@ -50,7 +50,7 @@ def test_diff_fmt():
     # ensure it matches the required pattern
     regex = re.compile(
         r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \| "
-        f"{__name__.split('.')[1]} a_very_nice_table \| INFO \| {log_message}$"
+        f"{__name__.split('.')[1]} a_very_nice_table | INFO | {log_message}$"
     )
 
     assert regex.search(a)
