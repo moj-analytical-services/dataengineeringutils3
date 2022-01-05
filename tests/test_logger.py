@@ -45,8 +45,6 @@ def test_diff_fmt():
     logger.info(log_message, extra={"table": "a_very_nice_table"})
     a = logger_io_stream.getvalue()
 
-    print("hi")
-
     # ensure it matches the required pattern
     regex = re.compile(
         r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \| "
