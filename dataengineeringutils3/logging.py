@@ -3,7 +3,7 @@ import io
 
 from typing import Tuple
 
-default_fmt = "%(asctime)s | %(funcName)s | %(levelname)s | %(context)s | %(message)s"
+default_fmt = "%(asctime)s | %(funcName)s | %(levelname)s | %(message)s"
 default_date_fmt = "%Y-%m-%d %H:%M:%S"
 
 
