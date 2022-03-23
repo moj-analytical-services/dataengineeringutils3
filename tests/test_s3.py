@@ -102,7 +102,8 @@ def test_read_json_from_s3(s3, bucket):
 
     assert read_json_from_s3("s3://test/f1/agfa/file_no_ext") == test_dict
 
-def test_read_yaml_from_s3(s3):
+
+def test_read_yaml_from_s3(s3, bucket):
 
     test_dict = {"foo": "bar"}
     body = yaml.dump(test_dict)
@@ -302,7 +303,7 @@ def test_write_local_folder_to_s3(s3, bucket, tmpdir):
         folder_path,
         "s3://test/test-folder",
         overwrite=False,
-        include_hidden_files=False
+        include_hidden_files=False,
     )
 
     # Check the right files are in the test bucket

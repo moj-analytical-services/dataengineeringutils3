@@ -9,6 +9,7 @@ from io import StringIO
 from pathlib import Path
 from typing import Union
 
+
 def gzip_string_write_to_s3(file_as_string, s3_path):
     """
     Writes IoString to s3 path as gziped output
@@ -84,7 +85,7 @@ def get_filepaths_from_s3_folder(
     return paths
 
 
-def get_object_body(s3_path: str, encoding: str="utf-8") -> str:
+def get_object_body(s3_path: str, encoding: str = "utf-8") -> str:
     """
     Gets object body from file in S3
     :param s3_path: "s3://...."
@@ -97,7 +98,8 @@ def get_object_body(s3_path: str, encoding: str="utf-8") -> str:
     text = obj.get()["Body"].read().decode(encoding)
     return text
 
-def read_json_from_s3(s3_path: str, encoding: str="utf-8", *args, **kwargs) -> dict:
+
+def read_json_from_s3(s3_path: str, encoding: str = "utf-8", *args, **kwargs) -> dict:
     """
     Reads a json from the provided s3 path
     :param s3_path: "s3://...."
@@ -127,7 +129,8 @@ def write_json_to_s3(data, s3_path, *args, **kwargs):
     log_upload_resp = log_obj.put(Body=log_file.getvalue())
     return log_upload_resp
 
-def read_yaml_from_s3(s3_path: str, encoding: str="utf-8", *args, **kwargs) -> dict:
+
+def read_yaml_from_s3(s3_path: str, encoding: str = "utf-8", *args, **kwargs) -> dict:
     """
     Reads a yaml file from the provided s3 path
     :param s3_path: "s3://...."
