@@ -1,12 +1,13 @@
-import gzip
-from io import StringIO
-import json
-import os
-from pathlib import Path
-from typing import Union
-
 import boto3
 import botocore
+import gzip
+import json
+import os
+import yaml
+
+from io import StringIO
+from pathlib import Path
+from typing import Union
 
 
 def gzip_string_write_to_s3(file_as_string, s3_path):
@@ -84,7 +85,21 @@ def get_filepaths_from_s3_folder(
     return paths
 
 
-def read_json_from_s3(s3_path, encoding="utf-8", *args, **kwargs):
+def get_object_body(s3_path: str, encoding: str = "utf-8") -> str:
+    """
+    Gets object body from file in S3
+    :param s3_path: "s3://...."
+    :param encoding: File type encoding (utf-8 default)
+    :return: decoded string data from S3
+    """
+    s3_resource = boto3.resource("s3")
+    bucket, key = s3_path_to_bucket_key(s3_path)
+    obj = s3_resource.Object(bucket, key)
+    text = obj.get()["Body"].read().decode(encoding)
+    return text
+
+
+def read_json_from_s3(s3_path: str, encoding: str = "utf-8", *args, **kwargs) -> dict:
     """
     Reads a json from the provided s3 path
     :param s3_path: "s3://...."
@@ -93,10 +108,7 @@ def read_json_from_s3(s3_path, encoding="utf-8", *args, **kwargs):
     :param **kwargs: Passed to json.loads call
     :return: data from the json
     """
-    s3_resource = boto3.resource("s3")
-    bucket, key = s3_path_to_bucket_key(s3_path)
-    obj = s3_resource.Object(bucket, key)
-    text = obj.get()["Body"].read().decode(encoding)
+    text = get_object_body(s3_path, encoding)
     return json.loads(text, *args, **kwargs)
 
 
@@ -116,6 +128,19 @@ def write_json_to_s3(data, s3_path, *args, **kwargs):
     log_obj = s3_resource.Object(bucket, key)
     log_upload_resp = log_obj.put(Body=log_file.getvalue())
     return log_upload_resp
+
+
+def read_yaml_from_s3(s3_path: str, encoding: str = "utf-8", *args, **kwargs) -> dict:
+    """
+    Reads a yaml file from the provided s3 path
+    :param s3_path: "s3://...."
+    :param encoding: File type encoding (utf-8 default)
+    :param *args: Passed to yaml.safe_load call
+    :param **kwargs: Passed to yaml.safe_load call
+    :return: data from the yaml
+    """
+    text = get_object_body(s3_path, encoding)
+    return yaml.safe_load(text, *args, **kwargs)
 
 
 def copy_s3_folder_contents_to_new_folder(

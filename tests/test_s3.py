@@ -1,9 +1,9 @@
 import gzip
 import io
 import os
-from pathlib import Path
 import pytest
 import json
+import yaml
 
 from dataengineeringutils3.s3 import (
     s3_path_to_bucket_key,
@@ -11,6 +11,7 @@ from dataengineeringutils3.s3 import (
     get_filepaths_from_s3_folder,
     read_json_from_s3,
     write_json_to_s3,
+    read_yaml_from_s3,
     copy_s3_folder_contents_to_new_folder,
     delete_s3_object,
     delete_s3_folder_contents,
@@ -21,6 +22,7 @@ from dataengineeringutils3.s3 import (
     write_s3_file_to_local,
     write_s3_folder_to_local,
 )
+from pathlib import Path
 
 bucket_name = "test"
 
@@ -99,6 +101,22 @@ def test_read_json_from_s3(s3, bucket):
     assert read_json_from_s3("s3://test/f1/my_file.json") == test_dict
 
     assert read_json_from_s3("s3://test/f1/agfa/file_no_ext") == test_dict
+
+
+def test_read_yaml_from_s3(s3, bucket):
+
+    test_dict = {"foo": "bar"}
+    body = yaml.dump(test_dict)
+    files = [
+        {"folder": "f1", "key": "my_file.json", "body": body},
+        {"folder": "f1/agfa", "key": "file_no_ext", "body": body},
+    ]
+    for f in files:
+        s3.Object(bucket_name, f["folder"] + "/" + f["key"]).put(Body=f["body"])
+
+    assert read_yaml_from_s3("s3://test/f1/my_file.json") == test_dict
+
+    assert read_yaml_from_s3("s3://test/f1/agfa/file_no_ext") == test_dict
 
 
 def test_write_json_s3(s3, bucket):
@@ -285,7 +303,7 @@ def test_write_local_folder_to_s3(s3, bucket, tmpdir):
         folder_path,
         "s3://test/test-folder",
         overwrite=False,
-        include_hidden_files=False
+        include_hidden_files=False,
     )
 
     # Check the right files are in the test bucket
