@@ -17,7 +17,7 @@ def get_logger(
     log = logging.getLogger("root")
     log.setLevel(logging.DEBUG)
 
-    # for some reason, the 
+    # for some reason, log.hasHandlers doesn't work below <3.9
     if not log.handlers:
         # set the io handler
         log_stringio = io.StringIO()
