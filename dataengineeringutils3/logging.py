@@ -28,6 +28,7 @@ def get_logger(
         log.addHandler(io_handler)
         log.addHandler(console_handler)
     else:
+        # this relies on the StringIO logger being added first (which we did do above)
         log_stringio = log.handlers[0].stream
 
     log_formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
