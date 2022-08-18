@@ -14,7 +14,7 @@ def get_logger(
     returns a logger object and an io stream of the data that is logged
     """
 
-    log = logging.getLogger("root")
+    log = logging.getLogger()
     log.setLevel(logging.DEBUG)
 
     # for some reason, log.hasHandlers doesn't work below <3.9
