@@ -17,17 +17,23 @@ def get_logger(
     log = logging.getLogger("root")
     log.setLevel(logging.DEBUG)
 
-    log_stringio = io.StringIO()
-    handler = logging.StreamHandler(log_stringio)
+    if not log.hasHandlers():
+        # set the io handler
+        log_stringio = io.StringIO()
+        io_handler = logging.StreamHandler(log_stringio)
+        # set the console output
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        # add the handlers
+        log.addHandler(io_handler)
+        log.addHandler(console_handler)
+    else:
+        log_stringio = log.handlers[0].stream
 
     log_formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
-    handler.setFormatter(log_formatter)
-    log.addHandler(handler)
 
-    # Add console output
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    console.setFormatter(log_formatter)
-    log.addHandler(console)
+    # add the formatters
+    for log_handler in log.handlers:
+        log_handler.setFormatter(log_formatter)
 
     return log, log_stringio
