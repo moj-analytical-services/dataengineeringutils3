@@ -17,7 +17,8 @@ def get_logger(
     log = logging.getLogger("root")
     log.setLevel(logging.DEBUG)
 
-    if not log.hasHandlers():
+    # for some reason, the 
+    if not log.handlers:
         # set the io handler
         log_stringio = io.StringIO()
         io_handler = logging.StreamHandler(log_stringio)
