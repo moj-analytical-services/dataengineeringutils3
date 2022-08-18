@@ -38,7 +38,7 @@ def test_diff_fmt():
     # log and retrieve a message
     log_message = "a message!"
     logger.info(log_message, extra={"table": "a_very_nice_table"})
-    a = logger_io_stream.getvalue()
+    a = logger_io_stream.getvalue().strip()
 
     # ensure it matches the required pattern
     regex = re.compile(
