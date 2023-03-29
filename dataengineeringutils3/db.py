@@ -68,9 +68,9 @@ class SelectQuerySet:
             yield results
             try:
                 results = self.cursor.fetchmany(self.fetch_size)
-            except Exception:
-                results = None
-                break
+            except Exception as e:
+                print(f"Unexpected {e=}, {type(e)=}")
+                raise
 
     @property
     def headers(self):
