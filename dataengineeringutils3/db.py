@@ -62,20 +62,24 @@ class SelectQuerySet:
         for r in self.cursor:
             yield r
 
-    def iter_chunks(self):
+    def iter_chunks(self, raise_error=False):
         results = self.cursor.fetchmany(self.fetch_size)
         while results:
             yield results
             try:
                 results = self.cursor.fetchmany(self.fetch_size)
             except Exception as e:
-                raise e
+                if raise_error:
+                    raise e
+                else:
+                    results = None
+                    break
 
     @property
     def headers(self):
         """Return column names"""
         return [c[0] for c in self.cursor.description]
 
-    def write_to_file(self, file_writer, line_transform=lambda x: x):
-        for results in self.iter_chunks():
+    def write_to_file(self, file_writer, line_transform=lambda x: x, raise_error=False):
+        for results in self.iter_chunks(raise_error=raise_error):
             file_writer.write_lines(results, line_transform)
