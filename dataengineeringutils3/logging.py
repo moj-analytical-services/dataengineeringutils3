@@ -19,7 +19,7 @@ def get_logger(
 
     if logging.StreamHandler not in [type(x) for x in log.handlers]:
         add_stream_handlers(log)
-    stream_handlers = [h for h in log.handlers if type(h) == logging.StreamHandler]
+    stream_handlers = [h for h in log.handlers if type(h) is logging.StreamHandler]
     log_stringio = stream_handlers[0].stream
 
     log_formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
