@@ -17,20 +17,12 @@ def get_logger(
     log = logging.getLogger()
     log.setLevel(logging.DEBUG)
 
-    # for some reason, log.hasHandlers doesn't work below <3.9
     if not log.handlers:
-        # set the io handler
-        log_stringio = io.StringIO()
-        io_handler = logging.StreamHandler(log_stringio)
-        # set the console output
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
-        # add the handlers
-        log.addHandler(io_handler)
-        log.addHandler(console_handler)
-    else:
-        # this relies on the StringIO logger being added first (which we did do above)
-        log_stringio = log.handlers[0].stream
+        add_stream_handlers(log)
+    elif logging.StreamHandler not in [type(x) for x in log.handlers]:
+        add_stream_handlers(log)
+    stream_handlers = [h for h in log.handlers if type(h) == logging.StreamHandler]
+    log_stringio = stream_handlers[0].stream
 
     log_formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
 
@@ -39,3 +31,14 @@ def get_logger(
         log_handler.setFormatter(log_formatter)
 
     return log, log_stringio
+
+
+def add_stream_handlers(log: logging.Logger):
+    log_stringio = io.StringIO()
+    io_handler = logging.StreamHandler(log_stringio)
+    # set the console output
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    # add the handlers
+    log.addHandler(io_handler)
+    log.addHandler(console_handler)
