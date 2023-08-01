@@ -17,9 +17,7 @@ def get_logger(
     log = logging.getLogger()
     log.setLevel(logging.DEBUG)
 
-    if not log.handlers:
-        add_stream_handlers(log)
-    elif logging.StreamHandler not in [type(x) for x in log.handlers]:
+    if logging.StreamHandler not in [type(x) for x in log.handlers]:
         add_stream_handlers(log)
     stream_handlers = [h for h in log.handlers if type(h) == logging.StreamHandler]
     log_stringio = stream_handlers[0].stream
