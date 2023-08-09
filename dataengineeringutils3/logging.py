@@ -14,19 +14,21 @@ def get_logger(
     returns a logger object and an io stream of the data that is logged
     """
 
-    log = logging.getLogger()
+    log = logging.getLogger("root")
     log.setLevel(logging.DEBUG)
 
-    if logging.StreamHandler not in [type(x) for x in log.handlers]:
-        add_stream_handlers(log)
-    stream_handlers = [h for h in log.handlers if type(h) is logging.StreamHandler]
-    log_stringio = stream_handlers[0].stream
+    log_stringio = io.StringIO()
+    handler = logging.StreamHandler(log_stringio)
 
     log_formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
+    handler.setFormatter(log_formatter)
+    log.addHandler(handler)
 
-    # add the formatters
-    for log_handler in log.handlers:
-        log_handler.setFormatter(log_formatter)
+    # Add console output
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    console.setFormatter(log_formatter)
+    log.addHandler(console)
 
     return log, log_stringio
 
