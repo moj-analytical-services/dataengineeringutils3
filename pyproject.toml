@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dataengineeringutils3"
-version = "1.4.3"
+version = "1.4.4"
 description = "Data engineering utils Python 3 version"
 authors = ["Data Engineering <dataengineering@digital.justice.gov.uk>"]
 license = "MIT"
@@ -23,7 +23,7 @@ Deprecated = "^1.2.12"
 PyYAML = "^6.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^3.4"
+pytest = ">=3.4"
 moto = "^2.2.6"
 pytest-cov = "^2.8"
 jsonlines = "^1.2"
