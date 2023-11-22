@@ -14,28 +14,31 @@ def get_logger(
     returns a logger object and an io stream of the data that is logged
     """
 
-    log = logging.getLogger()
+    log = logging.getLogger("root")
     log.setLevel(logging.DEBUG)
 
-    # for some reason, log.hasHandlers doesn't work below <3.9
-    if not log.handlers:
-        # set the io handler
-        log_stringio = io.StringIO()
-        io_handler = logging.StreamHandler(log_stringio)
-        # set the console output
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
-        # add the handlers
-        log.addHandler(io_handler)
-        log.addHandler(console_handler)
-    else:
-        # this relies on the StringIO logger being added first (which we did do above)
-        log_stringio = log.handlers[0].stream
+    log_stringio = io.StringIO()
+    handler = logging.StreamHandler(log_stringio)
 
     log_formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
+    handler.setFormatter(log_formatter)
+    log.addHandler(handler)
 
-    # add the formatters
-    for log_handler in log.handlers:
-        log_handler.setFormatter(log_formatter)
+    # Add console output
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    console.setFormatter(log_formatter)
+    log.addHandler(console)
 
     return log, log_stringio
+
+
+def add_stream_handlers(log: logging.Logger):
+    log_stringio = io.StringIO()
+    io_handler = logging.StreamHandler(log_stringio)
+    # set the console output
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    # add the handlers
+    log.addHandler(io_handler)
+    log.addHandler(console_handler)
