@@ -28,7 +28,6 @@ def test_timeout_not_raised(seconds, expected_output):
     """
     Tests that the timeout error raises an exception if stated time elapses.
     """
-    with pytest.raises(Exception):
-        with Timeout(seconds=seconds):
-            x = expected_output
+    with Timeout(seconds=seconds):
+        x = expected_output
     assert x == expected_output
