@@ -26,7 +26,8 @@ def test_timeout_raised(seconds):
 )
 def test_timeout_not_raised(seconds, expected_output):
     """
-    Tests that the timeout error raises an exception if stated time elapses.
+    Tests that the timeout error doesn't raise an exception and the wrapped
+    code executes.
     """
     with Timeout(seconds=seconds):
         x = expected_output
