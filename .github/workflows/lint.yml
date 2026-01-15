@@ -40,7 +40,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip==20.3.3
+          python -m pip install --upgrade pip==25.3
           pip install flake8 yamllint
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 

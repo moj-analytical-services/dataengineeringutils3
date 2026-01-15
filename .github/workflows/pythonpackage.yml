@@ -4,32 +4,31 @@ on: [pull_request]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.11", "3.12"]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip==20.3.3
-        pip install poetry
-        poetry install
-    - name: Test with pytest
-      env:
-        COVERALLS_REPO_TOKEN: ${{ secrets.github_token }}
-        COVERALLS_SERVICE_NAME: github
-        GIT_COMMIT: ${{ github.sha }}
-      run: |
-        pip install poetry coveralls
-        poetry install
-        poetry run pytest --cov-report term-missing --cov=dataengineeringutils3 tests/
-        export GIT_BRANCH=$(echo "${{ github.ref }}" | sed "s/refs\/heads\///")
-        coveralls
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip==25.3
+          pip install poetry
+          poetry install
+      - name: Test with pytest
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.github_token }}
+          COVERALLS_SERVICE_NAME: github
+          GIT_COMMIT: ${{ github.sha }}
+        run: |
+          pip install poetry coveralls
+          poetry install
+          poetry run pytest --cov-report term-missing --cov=dataengineeringutils3 tests/
+          export GIT_BRANCH=$(echo "${{ github.ref }}" | sed "s/refs\/heads\///")
+          coveralls
