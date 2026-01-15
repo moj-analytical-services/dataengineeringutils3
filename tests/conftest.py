@@ -1,7 +1,7 @@
 import os
 
 import boto3
-from moto import mock_s3, mock_sts
+from moto import mock_aws
 import pytest
 
 from dataengineeringutils3.db import SelectQuerySet
@@ -20,13 +20,13 @@ def aws_credentials():
 
 @pytest.fixture(scope="function")
 def s3(aws_credentials):
-    with mock_s3():
+    with mock_aws():
         yield boto3.resource("s3", region_name="eu-west-1")
 
 
 @pytest.fixture(scope="function")
 def bucket(s3):
-    with mock_s3():
+    with mock_aws():
         yield s3.meta.client.create_bucket(
             Bucket="test",
             CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
@@ -35,7 +35,7 @@ def bucket(s3):
 
 @pytest.fixture(scope="function")
 def sts(aws_credentials):
-    with mock_sts():
+    with mock_aws():
         yield boto3.resource("sts", region_name="eu-west-1")
 
 
