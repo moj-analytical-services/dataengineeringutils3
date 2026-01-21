@@ -1,3 +1,6 @@
+from dataengineeringutils3.timeout import Timeout
+
+
 class SelectQuerySet:
     """
     Iterator for fetching select query results in chunks.
@@ -43,7 +46,14 @@ class SelectQuerySet:
             writer.write_lines(results, transform_line)
     """
 
-    def __init__(self, cursor, select_query, fetch_size=1000, **query_kwargs):
+    def __init__(
+        self,
+        cursor,
+        select_query,
+        fetch_size=1000,
+        timeout=False,
+        **query_kwargs
+    ):
         """
         Sets the curser, query and executes
         :param cursor: curser object: such as cx_Oracle.connect().cursor
@@ -55,7 +65,11 @@ class SelectQuerySet:
         self.cursor = cursor
         self.cursor.arraysize = fetch_size
         self.fetch_size = fetch_size
-        self.cursor.execute(select_query, **query_kwargs)
+        if timeout:
+            with Timeout(seconds=9000):
+                self.cursor.execute(select_query, **query_kwargs)
+        else:
+            self.cursor.execute(select_query, **query_kwargs)
 
     def __iter__(self):
         """Reset iterator and n to 0"""
